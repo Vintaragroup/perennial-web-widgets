@@ -28,6 +28,19 @@ no dependencies to install. Paste it into a page and it works.
 ### Divi or another builder
 Any "raw HTML" or "code" module works. The markup, CSS and JS are all in the one file.
 
+### Or install the plugin, and use shortcodes
+If you'd rather not paste HTML into pages, `dist/perennial-widgets.zip` is a small plugin that
+registers a shortcode. Upload it under **Plugins → Add New → Upload Plugin**, activate, then:
+
+```
+[perennial_widget id="scheduling"]
+[perennial_widget id="crew" loop="true" loop_delay="6000"]
+```
+
+Valid ids: `scheduling`, `crew`, `equipment`, `business`. The plugin enqueues the font itself
+(disable with `add_filter( 'perennial_widgets_load_font', '__return_false' );`) and strips the
+snippet's own font tags. Source is in `plugin/`; `build-all.sh` regenerates the zip.
+
 ### Things to watch for
 - **Scripts must survive.** Some security plugins, and non-admin roles, strip `<script>` from post
   content. If a widget shows its finished state but never animates, that's the cause.
@@ -70,10 +83,19 @@ Any "raw HTML" or "code" module works. The markup, CSS and JS are all in the one
   build.sh                  combines desktop + mobile into the responsive file
   assets/                   crew widget only: the route map image
 preview.html                local preview with a timeline scrubber
+demo.html                   GENERATED — all four widgets on one page
+plugin/                     WordPress plugin source (shortcode wrapper)
+dist/perennial-widgets.zip  GENERATED — installable plugin
+build-all.sh                rebuilds every responsive file, demo.html and the plugin zip
 ```
 
-Edit the desktop or mobile source, then run that widget's `./build.sh` to regenerate the responsive
-file. Don't hand-edit a `*-responsive.html` — it gets overwritten.
+Edit the desktop or mobile source, then run that widget's `./build.sh` — or `./build-all.sh` to
+rebuild everything at once. Don't hand-edit a `*-responsive.html`, `demo.html` or the zip; they get
+overwritten.
+
+**Quickest look at the real thing:** open `demo.html` in a browser (it works straight from the
+filesystem) and scroll. Each widget plays as it comes into view; narrow the window under 768px for
+the mobile versions.
 
 Class names are prefixed per widget (`psw-`, `pcw-`, `pew-`, `pbo-`, plus `m` for the mobile
 variants) and every rule is scoped under the root class, so the widgets can't collide with theme

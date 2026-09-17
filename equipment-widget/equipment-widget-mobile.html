@@ -1,0 +1,299 @@
+<!--
+  Perennial — Animated Equipment Insights Widget (mobile)
+  Figma: OpeXLecEHRl0RU0WspDQQH, node 11:796 "mobile-equipment-insights-widget" (390 wide, 8s timeline)
+  The Figma frame's iOS status bar is device chrome and is intentionally not rendered.
+
+  Source file. For WordPress, paste equipment-widget-responsive.html (built by ./build.sh).
+  Everything is scoped under .pewm.
+
+  Options (attributes on the .pewm element):
+    data-loop="true"         replay the timeline after it finishes
+    data-loop-delay="4000"   ms to hold the final frame before replaying (default 4000)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  .pewm {
+    --pewm-bg: #0B2216;
+    --pewm-lime: #84CC16;
+    --pewm-ink: #0F1E16;
+    --pewm-muted: #6B7C72;
+    --pewm-line: #E5ECE9;
+    --pewm-surface: #F4F7F6;
+    --pewm-blue: #0EA5E9;
+    --pewm-orange: #F97316;
+    --pewm-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    width: 100%;
+    overflow: hidden;
+  }
+  /* Figma strokes sit inside the box, so 1px outlines use inset shadows to keep Figma's dimensions. */
+  .pewm, .pewm * { box-sizing: border-box; margin: 0; padding: 0; border: 0; }
+  .pewm svg { display: block; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .pewm svg * { vector-effect: non-scaling-stroke; }
+
+  .pewm-frame {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 32px;
+    background: var(--pewm-bg);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    line-height: 1.26;
+    color: var(--pewm-ink);
+    text-align: left;
+    -webkit-font-smoothing: antialiased;
+  }
+  .pewm-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+  /* ---------- Header ---------- */
+  .pewm-header { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; }
+  .pewm-eyebrow { display: flex; align-items: center; gap: 8px; }
+  .pewm-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--pewm-lime); }
+  .pewm-eyebrow-text { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--pewm-lime); }
+  .pewm-title { font-family: inherit; font-size: 22px; font-weight: 800; line-height: 1.25; letter-spacing: 0; color: #FFFFFF; text-transform: none; }
+
+  /* ---------- App card ---------- */
+  .pewm-panel { padding: 0 16px; }
+  .pewm-app { overflow: hidden; background: #FFFFFF; border-radius: 20px; box-shadow: 0 12px 40px rgba(5, 26, 16, 0.16); }
+
+  .pewm-topbar { padding: 14px; box-shadow: inset 0 -1px 0 var(--pewm-line); }
+  .pewm-app-title { display: flex; align-items: center; gap: 10px; }
+  .pewm-logo { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--pewm-bg); color: var(--pewm-lime); }
+  .pewm-logo svg { width: 14px; height: 14px; }
+  .pewm-app-text { display: flex; flex-direction: column; gap: 2px; }
+  .pewm-app-name { font-size: 13px; font-weight: 800; }
+  .pewm-app-sub { font-size: 10px; font-weight: 600; color: var(--pewm-muted); }
+  .pewm-add { padding: 6px 12px; border-radius: 6px; background: var(--pewm-lime); font-size: 11px; font-weight: 700; color: var(--pewm-bg); white-space: nowrap; }
+
+  .pewm-ribbon { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px; background: var(--pewm-surface); box-shadow: inset 0 -1px 0 var(--pewm-line); }
+  .pewm-asset-tab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px; border-radius: 8px; color: var(--pewm-muted); }
+  .pewm-asset-tab-id { font-size: 10px; font-weight: 800; }
+  .pewm-asset-tab-name { font-size: 9px; font-weight: 600; }
+  .pewm-asset-tab.is-active { background: var(--pewm-bg); }
+  .pewm-asset-tab.is-active .pewm-asset-tab-id { color: var(--pewm-lime); }
+  .pewm-asset-tab.is-active .pewm-asset-tab-name { color: #FFFFFF; }
+
+  .pewm-workspace { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+  .pewm-asset-head { display: flex; flex-direction: column; gap: 2px; }
+  .pewm-asset-name { font-size: 14px; font-weight: 800; }
+  .pewm-asset-meta { font-size: 11px; color: var(--pewm-muted); }
+  .pewm-status { padding: 4px 8px; border-radius: 6px; background: rgba(14, 165, 233, 0.1); font-size: 10px; font-weight: 800; color: var(--pewm-blue); white-space: nowrap; }
+
+  .pewm-box { display: flex; flex-direction: column; padding: 12px; border-radius: 12px; background: #FFFFFF; box-shadow: inset 0 0 0 1px var(--pewm-line); }
+  .pewm-revenue { gap: 10px; background: var(--pewm-surface); }
+  .pewm-metric-label { font-size: 11px; font-weight: 700; color: var(--pewm-muted); }
+  .pewm-up { font-size: 11px; font-weight: 800; color: var(--pewm-lime); }
+  .pewm-readout { display: flex; align-items: baseline; gap: 4px; }
+  .pewm-readout-value { font-size: 24px; font-weight: 800; }
+  .pewm-readout-unit { font-size: 11px; color: var(--pewm-muted); }
+  .pewm-chart { padding: 8px 0 4px; }
+  .pewm-chart svg { width: 306px; max-width: 100%; height: 40px; overflow: visible; }
+  .pewm-chart polyline { stroke: var(--pewm-bg); stroke-linecap: butt; }
+  .pewm-chart circle { fill: var(--pewm-lime); stroke: none; }
+
+  .pewm-health { gap: 8px; }
+  .pewm-health-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--pewm-muted); }
+  .pewm-divider { height: 1px; background: var(--pewm-line); }
+  .pewm-health-rows { display: flex; flex-direction: column; gap: 6px; font-size: 11px; }
+  .pewm-health-rows .pewm-row { align-items: flex-start; }
+  .pewm-health-key { color: var(--pewm-muted); }
+  .pewm-health-val { font-weight: 700; }
+  .pewm-health-val.is-due { color: var(--pewm-orange); }
+
+  .pewm-crew { padding: 10px; border-radius: 8px; background: #F0FDF4; box-shadow: inset 0 0 0 1px #D1E7DD; font-size: 11px; }
+  .pewm-crew-name { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+  .pewm-avatar { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 9px; background: var(--pewm-bg); font-size: 9px; font-weight: 700; color: #FFFFFF; }
+  .pewm-crew-value { font-weight: 800; color: var(--pewm-lime); }
+
+  .pewm-stamp { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 12px; background: #123020; }
+  .pewm-insight .pewm-stamp-title { font-size: 10px; letter-spacing: 1px; }
+  .pewm-insight .pewm-stamp-body { font-size: 11px; }
+  .pewm-stamp-title { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--pewm-lime); }
+  .pewm-stamp-body { font-size: 12px; line-height: 1.4; color: #A9C0B5; }
+
+  /* ---------- Checklist + footer ---------- */
+  .pewm-checklist { display: flex; flex-direction: column; gap: 12px; padding: 20px 24px 12px; list-style: none; }
+  .pewm-bullet { display: flex; align-items: center; gap: 10px; }
+  .pewm-check { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 9px; background: var(--pewm-lime); color: var(--pewm-bg); }
+  .pewm-check svg { width: 10px; height: 10px; }
+  .pewm-bullet-text { font-size: 13px; font-weight: 600; color: #FFFFFF; }
+  .pewm-footer { padding: 12px 20px 0; }
+
+  /* ---------- Motion (Figma timeline, 8000ms) ---------- */
+  .pewm--armed:not(.pewm--run) * { animation-play-state: paused !important; }
+  .pewm--reset * { animation: none !important; }
+
+  .pewm--armed .pewm-panel { --pewm-y: 20px; animation: pewm-rise 0.8s var(--pewm-out) 0.2s both; }
+
+  .pewm--armed .pewm-asset-tab { --pewm-y: 8px; animation: pewm-rise 0.35s var(--pewm-out) both; }
+  .pewm--armed .pewm-asset-tab:nth-child(1) {
+    animation: pewm-rise 0.35s var(--pewm-out) 1.05s both,
+               pewm-pulse 0.65s linear 2s both;
+  }
+  .pewm--armed .pewm-asset-tab:nth-child(2) { animation-delay: 1.3s; }
+  .pewm--armed .pewm-asset-tab:nth-child(3) { animation-delay: 1.55s; }
+
+  .pewm--armed .pewm-asset-row { animation: pewm-fade 0.45s var(--pewm-out) 2.25s both; }
+  .pewm--armed .pewm-revenue { --pewm-y: 10px; animation: pewm-rise 0.5s var(--pewm-out) 2.65s both; }
+  .pewm--armed .pewm-chart { animation: pewm-chart 0.65s var(--pewm-out) 3.2s both; }
+  .pewm--armed .pewm-health { --pewm-y: 8px; animation: pewm-rise 0.5s var(--pewm-out) 3.9s both; }
+  .pewm--armed .pewm-crew { --pewm-y: 8px; animation: pewm-rise 0.5s var(--pewm-out) 4.35s both; }
+  .pewm--armed .pewm-insight { --pewm-y: 10px; animation: pewm-rise 0.62s var(--pewm-out) 5s both; }
+
+  .pewm--armed .pewm-bullet { animation: pewm-light 0.35s var(--pewm-out) both; }
+  .pewm--armed .pewm-bullet:nth-child(1) { animation-delay: 3s; }
+  .pewm--armed .pewm-bullet:nth-child(2) { animation-delay: 3.65s; }
+  .pewm--armed .pewm-bullet:nth-child(3) { animation-delay: 4.6s; }
+
+  .pewm--armed .pewm-footer .pewm-stamp { --pewm-y: 12px; animation: pewm-rise 0.8s var(--pewm-out) 6.15s both; }
+
+  @keyframes pewm-rise {
+    from { opacity: 0; translate: 0 var(--pewm-y, 16px); }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes pewm-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes pewm-light {
+    from { opacity: 0.35; }
+    to   { opacity: 1; }
+  }
+  @keyframes pewm-chart {
+    from { opacity: 0.2; scale: 0.96; }
+    to   { opacity: 1; scale: 1; }
+  }
+  @keyframes pewm-pulse {
+    0%     { scale: 1;    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    52.31% { scale: 1.06; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    100%   { scale: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pewm * { animation: none !important; }
+  }
+</style>
+
+<div class="pewm" data-loop="false">
+  <div class="pewm-frame">
+    <header class="pewm-header">
+      <div class="pewm-eyebrow">
+        <span class="pewm-dot"></span>
+        <span class="pewm-eyebrow-text">Equipment Insights</span>
+      </div>
+      <h2 class="pewm-title">Maximize asset returns and financial performance</h2>
+    </header>
+
+    <div class="pewm-panel">
+      <div class="pewm-app" role="img" aria-label="Perennial Admin asset snapshot for the Bobcat S70 Skid Steer: in use at $340 a day, $4,840 monthly yield up 14.2%, $14,290 paid and $240 outstanding, Alpha Crew 92% utilized.">
+        <div class="pewm-row pewm-topbar">
+          <div class="pewm-app-title">
+            <span class="pewm-logo"><svg viewBox="0 0 24 24"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span>
+            <span class="pewm-app-text">
+              <span class="pewm-app-name">Perennial Admin</span>
+              <span class="pewm-app-sub">Asset Snapshot</span>
+            </span>
+          </div>
+          <span class="pewm-add">+ Add</span>
+        </div>
+
+        <div class="pewm-ribbon">
+          <span class="pewm-asset-tab is-active"><span class="pewm-asset-tab-id">BOB-9422</span><span class="pewm-asset-tab-name">Bobcat</span></span>
+          <span class="pewm-asset-tab"><span class="pewm-asset-tab-id">CAT-9422</span><span class="pewm-asset-tab-name">Caterpillar</span></span>
+          <span class="pewm-asset-tab"><span class="pewm-asset-tab-id">GMC-9422</span><span class="pewm-asset-tab-name">Sierra</span></span>
+        </div>
+
+        <div class="pewm-workspace">
+          <div class="pewm-row pewm-asset-row">
+            <div class="pewm-asset-head">
+              <span class="pewm-asset-name">Bobcat S70 Skid Steer</span>
+              <span class="pewm-asset-meta">Heavy Machinery • $340 / day</span>
+            </div>
+            <span class="pewm-status">IN USE</span>
+          </div>
+
+          <div class="pewm-box pewm-revenue">
+            <div class="pewm-row">
+              <span class="pewm-metric-label">Utilization &amp; Monthly Yield</span>
+              <span class="pewm-up">+14.2%</span>
+            </div>
+            <div class="pewm-readout">
+              <span class="pewm-readout-value">$4,840</span>
+              <span class="pewm-readout-unit">/ month</span>
+            </div>
+            <div class="pewm-chart">
+              <svg viewBox="0 0 306 40">
+                <polyline points="0,35 45,24 90,28 135,12 180,18 225,5"/>
+                <circle cx="0" cy="35" r="3"/><circle cx="45" cy="24" r="3"/><circle cx="90" cy="28" r="3"/>
+                <circle cx="135" cy="12" r="3"/><circle cx="180" cy="18" r="3"/><circle cx="225" cy="5" r="3"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="pewm-box pewm-health">
+            <span class="pewm-health-label">Outstanding &amp; Invoices</span>
+            <div class="pewm-divider"></div>
+            <div class="pewm-health-rows">
+              <div class="pewm-row"><span class="pewm-health-key">Paid Balance</span><span class="pewm-health-val">$14,290.00</span></div>
+              <div class="pewm-row"><span class="pewm-health-key">Outstanding (YTD)</span><span class="pewm-health-val is-due">$240.00</span></div>
+            </div>
+          </div>
+
+          <div class="pewm-row pewm-crew">
+            <span class="pewm-crew-name"><span class="pewm-avatar">AC</span>Alpha Crew Active</span>
+            <span class="pewm-crew-value">92% UTILIZED</span>
+          </div>
+
+          <div class="pewm-stamp pewm-insight">
+            <span class="pewm-stamp-title">Optimized Dispatch Insight</span>
+            <p class="pewm-stamp-body">Asset yield increased by 22% by routing Bobcat loaders to three adjacent Crestwood sites.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="pewm-checklist">
+      <li class="pewm-bullet"><span class="pewm-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pewm-bullet-text">Revenue &amp; utilization tracking</span></li>
+      <li class="pewm-bullet"><span class="pewm-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pewm-bullet-text">Pricing trend visibility</span></li>
+      <li class="pewm-bullet"><span class="pewm-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pewm-bullet-text">Real-time financial snapshot</span></li>
+    </ul>
+
+    <div class="pewm-footer">
+      <div class="pewm-stamp">
+        <span class="pewm-stamp-title">Flow Accelerator</span>
+        <p class="pewm-stamp-body">Turn every asset into measurable revenue.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var TIMELINE_MS = 8000;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) return;
+
+  document.querySelectorAll(".pewm:not([data-pewm-init])").forEach(function (root) {
+    root.setAttribute("data-pewm-init", "");
+    root.classList.add("pewm--armed");
+    var loop = root.getAttribute("data-loop") === "true";
+    var loopDelay = parseInt(root.getAttribute("data-loop-delay"), 10) || 4000;
+
+    function play() {
+      root.classList.remove("pewm--run");
+      root.classList.add("pewm--reset");
+      void root.offsetWidth; // restart CSS animations
+      root.classList.remove("pewm--reset");
+      root.classList.add("pewm--run");
+      if (loop) setTimeout(play, TIMELINE_MS + loopDelay);
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); play(); }
+    }, { threshold: 0.2 });
+    io.observe(root);
+  });
+})();
+</script>

@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scheduling Widget Preview</title>
+  <style>
+    body { margin: 0; padding: 24px 16px 80px; background: #EEF1EF; font-family: system-ui, sans-serif; color: #24332B; }
+    .bar {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      max-width: 1200px; margin: 0 auto 16px; padding: 12px 16px;
+      background: #FFFFFF; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,.08); font-size: 14px;
+    }
+    .bar button, .bar select { font: inherit; padding: 6px 12px; border: 1px solid #CBD5D0; border-radius: 6px; background: #FFFFFF; cursor: pointer; }
+    .bar input[type=range] { flex: 1; min-width: 200px; accent-color: #84CC16; }
+    .bar input[type=number] { width: 72px; font: inherit; padding: 5px 6px; border: 1px solid #CBD5D0; border-radius: 6px; }
+    .marks { display: flex; flex-wrap: wrap; gap: 6px; max-width: 1200px; margin: 0 auto 16px; font-size: 12px; }
+    .marks button { font: inherit; padding: 4px 8px; border: 1px solid #CBD5D0; border-radius: 999px; background: #FFFFFF; cursor: pointer; }
+    #mount { margin: 0 auto; }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <button type="button" id="play">Play</button>
+    <button type="button" id="restart">Restart</button>
+    <input type="range" id="scrub" min="0" max="8000" step="10" value="0" aria-label="Timeline position">
+    <label><input type="number" id="ms" min="0" max="8000" step="10" value="0"> ms</label>
+    <label>Speed
+      <select id="speed">
+        <option value="1">1×</option>
+        <option value="0.5">0.5×</option>
+        <option value="0.25">0.25×</option>
+        <option value="0.1">0.1×</option>
+      </select>
+    </label>
+    <label>Widget
+      <select id="widget"></select>
+    </label>
+    <label>Version
+      <select id="variant">
+        <option value="desktop">Desktop</option>
+        <option value="mobile">Mobile</option>
+        <option value="responsive">Responsive</option>
+      </select>
+    </label>
+    <label>Width
+      <select id="width">
+        <option value="">Full</option>
+        <option value="390">390</option>
+        <option value="1200">1200</option>
+        <option value="1024">1024</option>
+        <option value="768">768</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- Keyframe times from the Figma timeline: click to jump -->
+  <div class="marks" id="marks"></div>
+
+  <div id="mount"></div>
+
+  <script>
+    // Keyframe times come from each widget's Figma timeline.
+    var WIDGETS = {
+      "scheduling-widget": {
+        label: "Scheduling",
+        desktop: "scheduling-widget/scheduling-widget.html",
+        mobile: "scheduling-widget/scheduling-widget-mobile.html",
+        responsive: "scheduling-widget/scheduling-widget-responsive.html",
+        keys: [
+          [150, "Panel starts"], [950, "Panel in"], [1570, "Mon card"], [1900, "Tue card"],
+          [2230, "Wed card"], [2560, "Thu card"], [2890, "Fri card"], [3580, "Recur pulse peak"],
+          [4600, "Thu dip peak"], [5380, "PAID in"], [5420, "Badge overshoot"], [5620, "Payment captured"],
+          [6200, "Last bullet"], [7200, "Stamp in"], [8000, "End"]
+        ],
+        mobileKeys: [
+          [550, "Header in"], [1050, "Panel in"], [1500, "Fri tab pop peak"], [1780, "Recur card in"],
+          [2620, "Paid card in"], [3100, "Bullet 2"], [3180, "Recur pulse peak"], [4900, "PAID in"],
+          [4950, "Badge overshoot"], [5250, "Payment captured"], [5480, "Bullet 1"], [5720, "Metrics in"],
+          [7050, "Stamp in"], [8000, "End"]
+        ]
+      },
+      "crew-widget": {
+        label: "Crew",
+        desktop: "crew-widget/crew-widget.html",
+        mobile: "crew-widget/crew-widget-mobile.html",
+        responsive: "crew-widget/crew-widget-responsive.html",
+        keys: [
+          [950, "Panel in"], [1450, "Alpha row"], [1750, "Bravo row"], [2050, "Delta row"],
+          [2020, "Tree Pruning"], [3120, "Irrigation Repair"], [3350, "Slot highlight peak"],
+          [3650, "Premium Mow dropped"], [4100, "Slot settled"], [4700, "Map in"], [5100, "Metrics in"],
+          [5550, "Checklist lit"], [6850, "Stamp in"], [8000, "End"]
+        ],
+        mobileKeys: [
+          [1000, "Panel in"], [1450, "Fri tab pop peak"], [1820, "Capacity in"], [2300, "Paid card in"],
+          [3050, "Badge overshoot"], [3300, "Payment captured"], [3720, "Pending card in"],
+          [4200, "PENDING in"], [4650, "Realigned row"], [5200, "Metrics in"], [5650, "Checklist lit"],
+          [6950, "Stamp in"], [8000, "End"]
+        ]
+      }
+,
+      "equipment-widget": {
+        label: "Equipment",
+        desktop: "equipment-widget/equipment-widget.html",
+        mobile: "equipment-widget/equipment-widget-mobile.html",
+        responsive: "equipment-widget/equipment-widget-responsive.html",
+        keys: [
+          [950, "Panel in"], [1350, "Bobcat row"], [2470, "Last row"], [2780, "Bobcat pulse peak"],
+          [3020, "Bullet 1"], [3050, "Asset header"], [3480, "Revenue box"], [4050, "Chart in"],
+          [4620, "Invoices in"], [5670, "Bullet 6"], [6850, "Stamp in"], [8000, "End"]
+        ],
+        mobileKeys: [
+          [1000, "Panel in"], [1400, "Bobcat tab"], [1900, "Sierra tab"], [2340, "Bobcat pulse peak"],
+          [2700, "Asset row"], [3150, "Revenue box"], [3850, "Chart in"], [4400, "Invoices in"],
+          [4850, "Crew row"], [4950, "Bullet 3"], [5620, "Insight in"], [6950, "Stamp in"], [8000, "End"]
+        ]
+      },
+      "business-widget": {
+        label: "Business overview",
+        desktop: "business-widget/business-widget.html",
+        mobile: "business-widget/business-widget-mobile.html",
+        responsive: "business-widget/business-widget-responsive.html",
+        keys: [
+          [950, "Panel in"], [1250, "Schedule in"], [1630, "Row 1"], [2230, "Row 3"], [2650, "Metrics in"],
+          [3000, "Mulch alert"], [3250, "Weed alert"], [3750, "Yield in"], [3900, "Bars growing"],
+          [4750, "Last bar"], [5350, "Accordions lit"], [6800, "Stamp in"], [8000, "End"]
+        ],
+        mobileKeys: [
+          [1000, "Panel in"], [1850, "KPIs in"], [2150, "Crews list"], [2750, "Job rows"], [3200, "Alert section"],
+          [3450, "Alert card"], [4000, "Yield in"], [4200, "Bars growing"], [4950, "Last bar"],
+          [5550, "Accordions lit"], [6950, "Stamp in"], [8000, "End"]
+        ]
+      }
+    };
+    var params = new URLSearchParams(location.search);
+    var widgetKey = WIDGETS[params.get("w")] ? params.get("w") : "scheduling-widget";
+    var widget = WIDGETS[widgetKey];
+    var variant = /^(desktop|mobile|responsive)$/.test(params.get("v")) ? params.get("v") : "desktop";
+    var FILES = widget;
+    var KEYS = widget.keys, MOBILE_KEYS = widget.mobileKeys;
+    var DURATION = 8000;
+    var scrub = document.getElementById("scrub"), ms = document.getElementById("ms");
+    var playBtn = document.getElementById("play"), speedSel = document.getElementById("speed");
+    var root, t = 0, playing = false, last = 0;
+
+    function anims() { return root ? root.getAnimations({ subtree: true }) : []; }
+
+    // Drive every CSS animation from one clock so the widget can be frozen at any ms.
+    function seek(ms_) {
+      t = Math.max(0, Math.min(DURATION, ms_));
+      anims().forEach(function (a) { a.pause(); a.currentTime = t; });
+      scrub.value = Math.round(t);
+      ms.value = Math.round(t);
+    }
+
+    function tick(now) {
+      if (!playing) return;
+      t += (now - last) * parseFloat(speedSel.value);
+      last = now;
+      if (t >= DURATION) { seek(DURATION); setPlaying(false); return; }
+      seek(t);
+      requestAnimationFrame(tick);
+    }
+
+    function setPlaying(on) {
+      playing = on;
+      playBtn.textContent = on ? "Pause" : "Play";
+      if (on) {
+        if (t >= DURATION) t = 0;
+        last = performance.now();
+        requestAnimationFrame(tick);
+      }
+    }
+
+    playBtn.onclick = function () { setPlaying(!playing); };
+    document.getElementById("restart").onclick = function () { seek(0); setPlaying(true); };
+    scrub.oninput = function () { setPlaying(false); seek(+scrub.value); };
+    ms.onchange = function () { setPlaying(false); seek(+ms.value); };
+    document.getElementById("width").onchange = function (e) {
+      document.getElementById("mount").style.width = e.target.value ? e.target.value + "px" : "";
+    };
+
+    var variantSel = document.getElementById("variant");
+    variantSel.value = variant;
+    function go() { location.search = "?w=" + widgetSel.value + "&v=" + variantSel.value; }
+    variantSel.onchange = go;
+    var widgetSel = document.getElementById("widget");
+    Object.keys(WIDGETS).forEach(function (k) {
+      var o = document.createElement("option");
+      o.value = k; o.textContent = WIDGETS[k].label;
+      widgetSel.appendChild(o);
+    });
+    widgetSel.value = widgetKey;
+    widgetSel.onchange = go;
+    if (variant === "mobile") {
+      KEYS = MOBILE_KEYS;
+      document.getElementById("width").value = "390";
+      document.getElementById("mount").style.width = "390px";
+    }
+
+    var marks = document.getElementById("marks");
+    KEYS.forEach(function (k) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = k[0] + "ms · " + k[1];
+      b.onclick = function () { setPlaying(false); seek(k[0]); };
+      marks.appendChild(b);
+    });
+
+    // Serve the web-widgets folder over http (python3 -m http.server 5178) so fetch works.
+    fetch(FILES[variant]).then(function (r) { return r.text(); }).then(function (html) {
+      var mount = document.getElementById("mount");
+      var dir = FILES[variant].replace(/[^/]+$/, "");
+      // The scrubber drives playback, so stop widgets from restarting themselves when scrolled into view.
+      window.IntersectionObserver = function () { return { observe: function () {}, disconnect: function () {} }; };
+      mount.innerHTML = html.replace(/(src=")assets\//g, "$1" + dir + "assets/");
+      mount.querySelectorAll("script").forEach(function (old) {
+        var s = document.createElement("script");
+        s.textContent = old.textContent;
+        old.replaceWith(s);
+      });
+      root = mount;
+      // Arm immediately (don't wait for scroll) and hand control to the scrubber.
+      mount.querySelectorAll(".psw").forEach(function (el) { el.classList.add("psw--armed", "psw--run"); });
+      mount.querySelectorAll(".pswm").forEach(function (el) { el.classList.add("pswm--armed", "pswm--run"); });
+      mount.querySelectorAll(".pcw").forEach(function (el) { el.classList.add("pcw--armed", "pcw--run"); });
+      mount.querySelectorAll(".pcwm").forEach(function (el) { el.classList.add("pcwm--armed", "pcwm--run"); });
+      mount.querySelectorAll(".pew").forEach(function (el) { el.classList.add("pew--armed", "pew--run"); });
+      mount.querySelectorAll(".pewm").forEach(function (el) { el.classList.add("pewm--armed", "pewm--run"); });
+      mount.querySelectorAll(".pbo").forEach(function (el) { el.classList.add("pbo--armed", "pbo--run"); });
+      mount.querySelectorAll(".pbom").forEach(function (el) { el.classList.add("pbom--armed", "pbom--run"); });
+      requestAnimationFrame(function () { seek(0); setPlaying(true); });
+    });
+  </script>
+</body>
+</html>

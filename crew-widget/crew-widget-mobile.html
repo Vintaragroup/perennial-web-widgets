@@ -1,0 +1,305 @@
+<!--
+  Perennial — Animated Crew Scheduling Widget (mobile)
+  Figma: OpeXLecEHRl0RU0WspDQQH, node 11:235 "mobile-crew-scheduling-widget" (390 wide, 8s timeline)
+  The Figma frame's iOS status bar is device chrome and is intentionally not rendered.
+
+  Source file. For WordPress, paste crew-widget-responsive.html (built by ./build.sh).
+  Everything is scoped under .pcwm.
+
+  Options (attributes on the .pcwm element):
+    data-loop="true"         replay the timeline after it finishes
+    data-loop-delay="4000"   ms to hold the final frame before replaying (default 4000)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  .pcwm {
+    --pcwm-bg: #0B2216;
+    --pcwm-lime: #84CC16;
+    --pcwm-ink: #0F1E16;
+    --pcwm-muted: #6B7C72;
+    --pcwm-line: #E5ECE9;
+    --pcwm-surface: #F4F7F6;
+    --pcwm-orange: #F97316;
+    --pcwm-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    width: 100%;
+    overflow: hidden;
+  }
+  /* Figma strokes sit inside the box, so 1px outlines use inset shadows to keep Figma's dimensions. */
+  .pcwm, .pcwm * { box-sizing: border-box; margin: 0; padding: 0; border: 0; }
+  .pcwm svg { display: block; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .pcwm svg * { vector-effect: non-scaling-stroke; }
+
+  .pcwm-frame {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 24px;
+    background: var(--pcwm-bg);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    line-height: 1.26;
+    color: var(--pcwm-ink);
+    text-align: left;
+    -webkit-font-smoothing: antialiased;
+  }
+  .pcwm-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+  /* ---------- Header ---------- */
+  .pcwm-header { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px; }
+  .pcwm-eyebrow { display: flex; align-items: center; gap: 8px; }
+  .pcwm-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--pcwm-lime); opacity: 0.45; }
+  .pcwm-eyebrow-text { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--pcwm-lime); }
+  .pcwm-title { font-family: inherit; font-size: 22px; font-weight: 800; line-height: 1.25; letter-spacing: 0; color: #FFFFFF; text-transform: none; }
+
+  /* ---------- App card ---------- */
+  .pcwm-panel { padding: 0 16px; }
+  .pcwm-app { overflow: hidden; background: #FFFFFF; border-radius: 20px; box-shadow: 0 12px 40px rgba(5, 26, 16, 0.16); }
+
+  .pcwm-topbar { padding: 14px; box-shadow: inset 0 -1px 0 var(--pcwm-line); }
+  .pcwm-app-title { display: flex; align-items: center; gap: 10px; }
+  .pcwm-logo { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--pcwm-bg); color: var(--pcwm-lime); }
+  .pcwm-logo svg { width: 14px; height: 14px; }
+  .pcwm-app-text { display: flex; flex-direction: column; gap: 2px; }
+  .pcwm-app-name { font-size: 13px; font-weight: 800; }
+  .pcwm-app-sub { font-size: 10px; font-weight: 600; color: var(--pcwm-muted); }
+  .pcwm-assign { padding: 6px 12px; border-radius: 6px; background: var(--pcwm-lime); font-size: 11px; font-weight: 700; color: var(--pcwm-bg); white-space: nowrap; }
+
+  .pcwm-ribbon { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px; background: var(--pcwm-surface); box-shadow: inset 0 -1px 0 var(--pcwm-line); }
+  .pcwm-tab { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px; border-radius: 10px; }
+  .pcwm-tab-day { font-size: 10px; font-weight: 700; color: var(--pcwm-muted); }
+  .pcwm-tab-num { font-size: 12px; font-weight: 800; color: var(--pcwm-ink); }
+  .pcwm-tab.is-active { background: var(--pcwm-bg); }
+  .pcwm-tab.is-active .pcwm-tab-day { color: var(--pcwm-lime); }
+  .pcwm-tab.is-active .pcwm-tab-num { color: #FFFFFF; }
+
+  .pcwm-workspace { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+  .pcwm-focus { font-size: 11px; font-weight: 800; text-transform: uppercase; color: var(--pcwm-muted); }
+  .pcwm-sync { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--pcwm-lime); }
+
+  .pcwm-capacity { padding: 10px; box-shadow: inset 0 0 0 1px #D1E7DD; border-radius: 8px; background: #F0FDF4; font-size: 11px; }
+  .pcwm-capacity-label { font-weight: 700; }
+  .pcwm-capacity-value { font-weight: 800; color: var(--pcwm-lime); }
+
+  .pcwm-card { display: flex; flex-direction: column; gap: 10px; padding: 12px; box-shadow: inset 0 0 0 1px var(--pcwm-line); border-radius: 12px; background: var(--pcwm-surface); }
+  .pcwm-card.is-pending { box-shadow: inset 0 0 0 1px var(--pcwm-orange); background: #FFF7ED; }
+  .pcwm-crew { display: flex; align-items: center; gap: 10px; }
+  .pcwm-avatar { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 14px; background: var(--pcwm-bg); font-size: 11px; font-weight: 700; color: #FFFFFF; }
+  .pcwm-crew-text { display: flex; flex-direction: column; gap: 2px; }
+  .pcwm-crew-name { font-size: 13px; font-weight: 800; }
+  .pcwm-crew-size { font-size: 10px; font-weight: 600; color: var(--pcwm-muted); }
+  .pcwm-badge { padding: 3px 8px; border-radius: 6px; background: var(--pcwm-lime); font-size: 9px; font-weight: 800; color: var(--pcwm-bg); }
+  .pcwm-badge.is-pending { background: var(--pcwm-orange); color: #FFFFFF; }
+  .pcwm-divider { height: 1px; background: var(--pcwm-line); }
+  .pcwm-card.is-pending .pcwm-divider { background: #FED7AA; }
+  .pcwm-job { display: flex; flex-direction: column; gap: 4px; }
+  .pcwm-job-title { font-size: 13px; font-weight: 800; }
+  .pcwm-job-meta { font-size: 11px; font-weight: 400; color: var(--pcwm-muted); }
+  .pcwm-success { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--pcwm-lime); }
+  .pcwm-success svg { width: 14px; height: 14px; }
+  .pcwm-realigned { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--pcwm-orange); }
+  .pcwm-realigned svg { width: 12px; height: 12px; }
+
+  .pcwm-metrics { padding: 14px; background: var(--pcwm-surface); box-shadow: inset 0 1px 0 var(--pcwm-line); }
+  .pcwm-metrics-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--pcwm-muted); white-space: nowrap; }
+  .pcwm-metrics-value { font-size: 16px; font-weight: 800; white-space: nowrap; }
+
+  /* ---------- Checklist + footer ---------- */
+  .pcwm-checklist { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px 12px; list-style: none; }
+  .pcwm-bullet { display: flex; align-items: center; gap: 8px; }
+  .pcwm-check { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 10px; background: var(--pcwm-lime); color: var(--pcwm-bg); }
+  .pcwm-check svg { width: 10px; height: 10px; }
+  .pcwm-bullet-text { font-size: 13px; font-weight: 600; color: #FFFFFF; }
+
+  .pcwm-footer { padding: 12px 20px 0; }
+  .pcwm-stamp { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 12px; background: #123020; }
+  .pcwm-stamp-title { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--pcwm-lime); }
+  .pcwm-stamp-body { font-size: 12px; line-height: 1.4; color: #A9C0B5; }
+
+  /* ---------- Motion (Figma timeline, 8000ms) ---------- */
+  .pcwm--armed:not(.pcwm--run) * { animation-play-state: paused !important; }
+  .pcwm--reset * { animation: none !important; }
+
+  .pcwm--armed .pcwm-dot { animation: pcwm-blink 8s linear infinite; }
+  .pcwm--armed .pcwm-panel { --pcwm-y: 20px; animation: pcwm-rise 0.8s var(--pcwm-out) 0.2s both; }
+  .pcwm--armed .pcwm-tab.is-active { animation: pcwm-tab-pop 0.68s linear 1.1s both; }
+  .pcwm--armed .pcwm-capacity { --pcwm-y: 8px; animation: pcwm-rise 0.47s var(--pcwm-out) 1.35s both; }
+  .pcwm--armed .pcwm-card-paid { --pcwm-y: 14px; animation: pcwm-rise 0.5s var(--pcwm-out) 1.8s both; }
+  .pcwm--armed .pcwm-badge-paid {
+    animation: pcwm-fade 0.35s var(--pcwm-out) 2.65s both,
+               pcwm-badge-pop 0.65s linear 2.65s both;
+  }
+  .pcwm--armed .pcwm-success { --pcwm-y: 7px; animation: pcwm-rise 0.4s var(--pcwm-out) 2.9s both; }
+  .pcwm--armed .pcwm-card-pending { animation: pcwm-slide 0.52s var(--pcwm-out) 3.2s both; }
+  .pcwm--armed .pcwm-badge-pending { animation: pcwm-fade 0.35s var(--pcwm-out) 3.85s both; }
+  .pcwm--armed .pcwm-realigned { --pcwm-y: 7px; animation: pcwm-rise 0.5s var(--pcwm-out) 4.15s both; }
+  .pcwm--armed .pcwm-metrics { --pcwm-o: 0.3; animation: pcwm-fade 0.55s var(--pcwm-out) 4.65s both; }
+  .pcwm--armed .pcwm-checklist { --pcwm-o: 0.38; animation: pcwm-fade 0.5s var(--pcwm-out) 5.15s both; }
+  .pcwm--armed .pcwm-stamp { --pcwm-y: 12px; animation: pcwm-rise 0.8s var(--pcwm-out) 6.15s both; }
+
+  @keyframes pcwm-rise {
+    from { opacity: 0; translate: 0 var(--pcwm-y, 16px); }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes pcwm-slide {
+    from { opacity: 0; translate: -28px 0; }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes pcwm-fade {
+    from { opacity: var(--pcwm-o, 0); }
+    to   { opacity: 1; }
+  }
+  @keyframes pcwm-blink {
+    0%          { opacity: 0.45; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    7.5%        { opacity: 1;    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    15%, 52.5%  { opacity: 0.45; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    60%         { opacity: 1;    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    67.5%, 100% { opacity: 0.45; }
+  }
+  @keyframes pcwm-tab-pop {
+    0%     { scale: 1;    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    51.47% { scale: 1.08; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    100%   { scale: 1; }
+  }
+  @keyframes pcwm-badge-pop {
+    0%     { scale: 0.82; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    61.54% { scale: 1.08; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    100%   { scale: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pcwm * { animation: none !important; }
+  }
+</style>
+
+<div class="pcwm" data-loop="false">
+  <div class="pcwm-frame">
+    <header class="pcwm-header">
+      <div class="pcwm-eyebrow">
+        <span class="pcwm-dot"></span>
+        <span class="pcwm-eyebrow-text">Crew Scheduler</span>
+      </div>
+      <h2 class="pcwm-title">Crew dispatch in real-time</h2>
+    </header>
+
+    <div class="pcwm-panel">
+      <div class="pcwm-app" role="img" aria-label="Crews for Friday, October 16: Alpha Crew at full capacity with a paid premium lawn cut, Bravo Crew with a pending weed control job realigned by dispatch, and 94% route dispatch efficiency.">
+        <div class="pcwm-row pcwm-topbar">
+          <div class="pcwm-app-title">
+            <span class="pcwm-logo"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M3 10h18M8 2v4M17 14h-6M13 18H7M7 14h.01M17 18h.01"/></svg></span>
+            <span class="pcwm-app-text">
+              <span class="pcwm-app-name">Crews (Oct 16)</span>
+              <span class="pcwm-app-sub">Friday's Focus</span>
+            </span>
+          </div>
+          <span class="pcwm-assign">+ Assign</span>
+        </div>
+
+        <div class="pcwm-ribbon">
+          <span class="pcwm-tab"><span class="pcwm-tab-day">Mon</span><span class="pcwm-tab-num">12</span></span>
+          <span class="pcwm-tab"><span class="pcwm-tab-day">Tue</span><span class="pcwm-tab-num">13</span></span>
+          <span class="pcwm-tab"><span class="pcwm-tab-day">Wed</span><span class="pcwm-tab-num">14</span></span>
+          <span class="pcwm-tab"><span class="pcwm-tab-day">Thu</span><span class="pcwm-tab-num">15</span></span>
+          <span class="pcwm-tab is-active"><span class="pcwm-tab-day">Fri</span><span class="pcwm-tab-num">16</span></span>
+        </div>
+
+        <div class="pcwm-workspace">
+          <div class="pcwm-row">
+            <span class="pcwm-focus">Friday's Route focus</span>
+            <span class="pcwm-sync">Map Sync</span>
+          </div>
+
+          <div class="pcwm-row pcwm-capacity">
+            <span class="pcwm-capacity-label">Alpha Crew State</span>
+            <span class="pcwm-capacity-value">FULL CAPACITY</span>
+          </div>
+
+          <div class="pcwm-card pcwm-card-paid">
+            <div class="pcwm-row">
+              <div class="pcwm-crew">
+                <span class="pcwm-avatar">AC</span>
+                <span class="pcwm-crew-text"><span class="pcwm-crew-name">Alpha Crew</span><span class="pcwm-crew-size">3 members</span></span>
+              </div>
+              <span class="pcwm-badge pcwm-badge-paid">PAID</span>
+            </div>
+            <div class="pcwm-divider"></div>
+            <div class="pcwm-job">
+              <div class="pcwm-job-title">Premium Lawn Cut</div>
+              <div class="pcwm-job-meta">12 Crestwood Blvd · 09:00 AM</div>
+            </div>
+            <div class="pcwm-success">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              Payment Captured Successfully
+            </div>
+          </div>
+
+          <div class="pcwm-card is-pending pcwm-card-pending">
+            <div class="pcwm-row">
+              <div class="pcwm-crew">
+                <span class="pcwm-avatar">BC</span>
+                <span class="pcwm-crew-text"><span class="pcwm-crew-name">Bravo Crew</span><span class="pcwm-crew-size">2 members</span></span>
+              </div>
+              <span class="pcwm-badge is-pending pcwm-badge-pending">PENDING</span>
+            </div>
+            <div class="pcwm-divider"></div>
+            <div class="pcwm-job">
+              <div class="pcwm-job-title">Weed Control &amp; Trim</div>
+              <div class="pcwm-job-meta">89 Pine Terr. · 01:30 PM</div>
+            </div>
+            <div class="pcwm-realigned">
+              <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              Route realigned by dispatch
+            </div>
+          </div>
+        </div>
+
+        <div class="pcwm-row pcwm-metrics">
+          <span class="pcwm-metrics-label">Route Dispatch Efficiency</span>
+          <span class="pcwm-metrics-value">94% Perfect</span>
+        </div>
+      </div>
+    </div>
+
+    <ul class="pcwm-checklist">
+      <li class="pcwm-bullet"><span class="pcwm-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pcwm-bullet-text">Live load &amp; capacity monitoring</span></li>
+      <li class="pcwm-bullet"><span class="pcwm-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pcwm-bullet-text">Route-awareness &amp; travel sync</span></li>
+    </ul>
+
+    <div class="pcwm-footer">
+      <div class="pcwm-stamp">
+        <span class="pcwm-stamp-title">Flow Accelerator</span>
+        <p class="pcwm-stamp-body">Optimize routes, track crew availability, and capture digital payments instantly.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var TIMELINE_MS = 8000;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) return;
+
+  document.querySelectorAll(".pcwm:not([data-pcwm-init])").forEach(function (root) {
+    root.setAttribute("data-pcwm-init", "");
+    root.classList.add("pcwm--armed");
+    var loop = root.getAttribute("data-loop") === "true";
+    var loopDelay = parseInt(root.getAttribute("data-loop-delay"), 10) || 4000;
+
+    function play() {
+      root.classList.remove("pcwm--run");
+      root.classList.add("pcwm--reset");
+      void root.offsetWidth; // restart CSS animations
+      root.classList.remove("pcwm--reset");
+      root.classList.add("pcwm--run");
+      if (loop) setTimeout(play, TIMELINE_MS + loopDelay);
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); play(); }
+    }, { threshold: 0.2 });
+    io.observe(root);
+  });
+})();
+</script>

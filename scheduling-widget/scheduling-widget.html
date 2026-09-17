@@ -1,0 +1,416 @@
+<!--
+  Perennial — Animated Scheduling Widget (desktop)
+  Figma: OpeXLecEHRl0RU0WspDQQH, node 5:4 "animated-scheduling-widget" (1200×760, 8s timeline)
+
+  Paste this whole file into an Elementor "HTML" widget or a Gutenberg "Custom HTML" block.
+  Everything is scoped under .psw, so it won't touch the theme's styles.
+
+  Options (attributes on the .psw element):
+    data-loop="true"         replay the timeline after it finishes
+    data-loop-delay="4000"   ms to hold the final frame before replaying (default 4000)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  .psw {
+    --psw-bg: #0B2216;
+    --psw-lime: #84CC16;
+    --psw-ink: #0F1E16;
+    --psw-muted: #6B7C72;
+    --psw-line: #E5ECE9;
+    --psw-surface: #F4F7F6;
+    --psw-blue: #0EA5E9;
+    --psw-orange: #F97316;
+    --psw-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --psw-inout: cubic-bezier(0.42, 0, 0.58, 1);
+
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+  .psw, .psw * { box-sizing: border-box; margin: 0; padding: 0; border: 0; }
+  .psw svg { display: block; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .psw svg * { vector-effect: non-scaling-stroke; }
+
+  /* ---------- Frame ---------- */
+  .psw-frame {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    max-width: 1200px;
+    height: 760px;
+    margin: 0 auto;
+    padding: 40px;
+    overflow: hidden;
+    background: var(--psw-bg);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    line-height: 1.26;
+    color: var(--psw-ink);
+    text-align: left;
+    -webkit-font-smoothing: antialiased;
+    transform-origin: top left;
+  }
+
+  /* ---------- Header ---------- */
+  .psw-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .psw-statement { display: flex; flex-direction: column; gap: 8px; width: 500px; }
+  .psw-eyebrow { display: flex; align-items: center; gap: 8px; }
+  .psw-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--psw-lime); opacity: 0.45; }
+  .psw-eyebrow-text { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--psw-lime); }
+  .psw-title {
+    font-family: inherit;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    color: #FFFFFF;
+    text-transform: none;
+  }
+  .psw-checklist { display: flex; flex-wrap: wrap; gap: 24px; width: 580px; flex-shrink: 0; list-style: none; }
+  .psw-bullet { display: flex; align-items: center; gap: 8px; width: 270px; }
+  .psw-check { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 10px; background: var(--psw-lime); color: var(--psw-bg); }
+  .psw-check svg { width: 10px; height: 10px; }
+  .psw-bullet-text { flex: 1; font-size: 13px; font-weight: 600; color: #FFFFFF; }
+
+  /* ---------- App panel ---------- */
+  .psw-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    background: #FFFFFF;
+    border-radius: 20px;
+    box-shadow: 0 12px 40px rgba(5, 26, 16, 0.16);
+  }
+  .psw-topbar { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 24px; border-bottom: 1px solid var(--psw-line); flex-shrink: 0; }
+  .psw-app-title { display: flex; align-items: center; gap: 12px; }
+  .psw-logo { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--psw-bg); color: var(--psw-lime); }
+  .psw-logo svg { width: 14px; height: 14px; }
+  .psw-app-name { font-size: 16px; font-weight: 700; }
+  .psw-week { padding: 4px 10px; border-radius: 6px; background: var(--psw-surface); font-size: 11px; font-weight: 600; color: var(--psw-muted); }
+  .psw-controls { display: flex; align-items: center; gap: 16px; }
+  .psw-toggles { display: flex; padding: 4px; border-radius: 8px; background: var(--psw-surface); }
+  .psw-toggle { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; color: var(--psw-muted); }
+  .psw-toggle.is-active { background: #FFFFFF; font-weight: 700; color: var(--psw-ink); }
+  .psw-create { padding: 8px 16px; border-radius: 8px; background: var(--psw-lime); font-size: 12px; font-weight: 700; color: var(--psw-bg); }
+
+  .psw-workspace { display: flex; flex: 1; min-height: 0; }
+  .psw-grid { display: flex; flex: 1; min-width: 0; border-right: 1px solid var(--psw-line); }
+  .psw-col { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; border-right: 1px solid var(--psw-line); }
+  .psw-col:last-child { border-right: 0; }
+  .psw-day { padding: 12px; background: var(--psw-surface); font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--psw-muted); }
+  .psw-cards { display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+
+  .psw-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 10px; background: var(--psw-surface); }
+  .psw-card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .psw-card-top.is-centered { align-items: center; }
+  .psw-job { font-size: 11px; font-weight: 700; color: var(--psw-muted); }
+  .psw-pin { width: 6px; height: 6px; border-radius: 3px; background: var(--psw-blue); }
+  .psw-card-title { font-size: 13px; font-weight: 700; white-space: nowrap; }
+  .psw-card-addr { font-size: 11px; font-weight: 400; color: var(--psw-muted); white-space: nowrap; }
+
+  .psw-card.is-recurring { background: #FFF7ED; box-shadow: inset 0 0 0 1px var(--psw-orange); }
+  .psw-card.is-recurring .psw-job { color: var(--psw-orange); }
+  .psw-recur-icon { width: 14px; height: 14px; color: var(--psw-orange); }
+  .psw-pill { align-self: flex-start; padding: 2px 6px; border-radius: 4px; background: var(--psw-orange); font-size: 9px; font-weight: 700; color: #000000; }
+
+  .psw-card.is-complete {
+    gap: 10px;
+    background: #F0FDF4;
+    box-shadow: inset 0 0 0 1.5px var(--psw-lime), 0 4px 12px rgba(132, 204, 22, 0.13);
+  }
+  .psw-badge { padding: 3px 8px; border-radius: 6px; background: var(--psw-lime); font-size: 9px; font-weight: 800; color: var(--psw-bg); }
+  .psw-card-head { display: flex; flex-direction: column; gap: 2px; }
+  .psw-card.is-complete .psw-card-title { font-weight: 800; }
+  .psw-customer { display: flex; align-items: center; gap: 6px; }
+  .psw-avatar { display: flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 9px; background: var(--psw-bg); font-size: 9px; font-weight: 700; color: #FFFFFF; }
+  .psw-customer-name { font-size: 11px; font-weight: 600; }
+  .psw-success { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; color: var(--psw-lime); }
+  .psw-success svg { width: 12px; height: 12px; }
+
+  /* ---------- Sidebar ---------- */
+  .psw-sidebar { display: flex; flex-direction: column; gap: 24px; width: 280px; flex-shrink: 0; padding: 24px; background: var(--psw-surface); }
+  .psw-balance { display: flex; flex-direction: column; gap: 4px; }
+  .psw-balance-label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--psw-muted); }
+  .psw-balance-value { font-size: 24px; font-weight: 800; }
+  .psw-legend { display: flex; flex-direction: column; gap: 12px; }
+  .psw-legend-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; border: 1px solid var(--psw-line); border-radius: 8px; background: #FFFFFF; font-size: 12px; }
+  .psw-legend-label { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .psw-legend-dot { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 8px; background: #F0FDF4; }
+  .psw-legend-dot::after { content: ""; width: 6px; height: 6px; border-radius: 3px; background: var(--psw-lime); }
+  .psw-legend-dot.is-blue { background: #F0F9FF; }
+  .psw-legend-dot.is-blue::after { background: var(--psw-blue); }
+  .psw-legend-value { font-weight: 700; }
+  .psw-stamp { display: flex; flex-direction: column; gap: 8px; padding: 16px; border-radius: 12px; background: #123020; }
+  .psw-stamp-title { font-size: 12px; font-weight: 700; color: var(--psw-lime); }
+  .psw-stamp-body { width: 200px; font-size: 11px; line-height: 1.4; color: #A9C0B5; }
+
+  /* ---------- Motion (Figma timeline, 8000ms) ----------
+     Animations are only attached once the script arms the widget, so without JS
+     (or with reduced motion) the widget renders in its final, fully visible state. */
+  .psw--armed:not(.psw--run) * { animation-play-state: paused !important; }
+  .psw--reset * { animation: none !important; }
+
+  .psw--armed .psw-dot { animation: psw-blink 4s linear infinite; }
+
+  /* Checklist lights up as each feature is demonstrated */
+  .psw--armed .psw-bullet { animation: psw-light 0.35s var(--psw-out) both; }
+  .psw--armed .psw-bullet:nth-child(1) { animation-delay: 5.15s; }
+  .psw--armed .psw-bullet:nth-child(2) { animation-delay: 3.15s; }
+  .psw--armed .psw-bullet:nth-child(3) { animation-delay: 2.15s; }
+  .psw--armed .psw-bullet:nth-child(4) { animation-delay: 5.85s; }
+
+  .psw--armed .psw-panel { --psw-y: 24px; animation: psw-rise 0.8s var(--psw-out) 0.15s both; }
+
+  .psw--armed .psw-card { animation: psw-rise 0.42s var(--psw-out) both; }
+  .psw--armed .psw-card-1 { animation-delay: 1.15s; }
+  .psw--armed .psw-card-2 { animation-delay: 1.48s; }
+  .psw--armed .psw-card-recur {
+    animation: psw-rise 0.42s var(--psw-out) 1.81s both,
+               psw-pulse 0.7s linear 3.25s both;
+  }
+  .psw--armed .psw-card-3 {
+    animation: psw-rise 0.42s var(--psw-out) 2.14s both,
+               psw-nudge 0.95s linear 4.15s both;
+  }
+  .psw--armed .psw-card-complete { animation-delay: 2.47s; }
+
+  .psw--armed .psw-badge {
+    animation: psw-fade 0.33s var(--psw-out) 5.05s both,
+               psw-pop 0.67s linear 5.05s both;
+  }
+  .psw--armed .psw-success { --psw-y: 8px; animation: psw-rise 0.37s var(--psw-out) 5.25s both; }
+  .psw--armed .psw-stamp { --psw-y: 12px; animation: psw-rise 0.75s var(--psw-out) 6.45s both; }
+
+  @keyframes psw-rise {
+    from { opacity: 0; translate: 0 var(--psw-y, 16px); }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes psw-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes psw-light {
+    from { opacity: 0.38; }
+    to   { opacity: 1; }
+  }
+  @keyframes psw-blink {
+    0%        { opacity: 0.45; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    15%       { opacity: 1;    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    30%, 100% { opacity: 0.45; }
+  }
+  @keyframes psw-pulse {
+    0%     { scale: 1;    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    47.14% { scale: 1.04; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    100%   { scale: 1; }
+  }
+  @keyframes psw-nudge {
+    0%     { transform: translateY(0);    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    47.37% { transform: translateY(30px); animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    100%   { transform: translateY(0); }
+  }
+  @keyframes psw-pop {
+    0%     { scale: 0.82; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    55.22% { scale: 1.08; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    100%   { scale: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .psw * { animation: none !important; }
+  }
+</style>
+
+<div class="psw" data-loop="false">
+  <div class="psw-frame">
+    <header class="psw-header">
+      <div class="psw-statement">
+        <div class="psw-eyebrow">
+          <span class="psw-dot"></span>
+          <span class="psw-eyebrow-text">Flow Scheduler</span>
+        </div>
+        <h2 class="psw-title">Streamline your mobile workforce in real-time</h2>
+      </div>
+      <ul class="psw-checklist">
+        <li class="psw-bullet">
+          <span class="psw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span class="psw-bullet-text">View live invoice &amp; payment status</span>
+        </li>
+        <li class="psw-bullet">
+          <span class="psw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span class="psw-bullet-text">Smart recurring service schedules</span>
+        </li>
+        <li class="psw-bullet">
+          <span class="psw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span class="psw-bullet-text">Attach precise property details</span>
+        </li>
+        <li class="psw-bullet">
+          <span class="psw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span class="psw-bullet-text">Auto-generate outstanding balances</span>
+        </li>
+      </ul>
+    </header>
+
+    <div class="psw-panel" role="img" aria-label="Flow Scheduler weekly schedule: jobs Monday to Friday, a recurring garden care job, a paid premium lawn cut, and a weekly balance of $4,810.">
+      <div class="psw-topbar">
+        <div class="psw-app-title">
+          <span class="psw-logo">
+            <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M3 10h18M8 2v4M17 14h-6M13 18H7M7 14h.01M17 18h.01"/></svg>
+          </span>
+          <span class="psw-app-name">Weekly Schedules</span>
+          <span class="psw-week">Oct 12 - Oct 16</span>
+        </div>
+        <div class="psw-controls">
+          <div class="psw-toggles">
+            <span class="psw-toggle is-active">Weekly View</span>
+            <span class="psw-toggle">Daily List</span>
+          </div>
+          <span class="psw-create">+ Create Job</span>
+        </div>
+      </div>
+
+      <div class="psw-workspace">
+        <div class="psw-grid">
+          <div class="psw-col">
+            <div class="psw-day">Mon 12</div>
+            <div class="psw-cards">
+              <div class="psw-card psw-card-1">
+                <div class="psw-card-top"><span class="psw-job">#JOB-3101</span><span class="psw-pin"></span></div>
+                <div class="psw-card-title">Lawn Aeration</div>
+                <div class="psw-card-addr">102 Oak Ave</div>
+              </div>
+            </div>
+          </div>
+          <div class="psw-col">
+            <div class="psw-day">Tue 13</div>
+            <div class="psw-cards">
+              <div class="psw-card psw-card-2">
+                <div class="psw-card-top"><span class="psw-job">#JOB-3102</span><span class="psw-pin"></span></div>
+                <div class="psw-card-title">Tree Pruning</div>
+                <div class="psw-card-addr">89 Pine Terr.</div>
+              </div>
+            </div>
+          </div>
+          <div class="psw-col">
+            <div class="psw-day">Wed 14</div>
+            <div class="psw-cards">
+              <div class="psw-card psw-card-recur is-recurring">
+                <div class="psw-card-top is-centered">
+                  <span class="psw-job">#JOB-RECUR</span>
+                  <svg class="psw-recur-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+                </div>
+                <div class="psw-card-title">Garden Care</div>
+                <div class="psw-card-addr">404 Birch Ln</div>
+                <span class="psw-pill">BI-WEEKLY</span>
+              </div>
+            </div>
+          </div>
+          <div class="psw-col">
+            <div class="psw-day">Thu 15</div>
+            <div class="psw-cards">
+              <div class="psw-card psw-card-3">
+                <div class="psw-card-top"><span class="psw-job">#JOB-3105</span><span class="psw-pin"></span></div>
+                <div class="psw-card-title">Debris Cleanup</div>
+                <div class="psw-card-addr">71 Maple Dr</div>
+              </div>
+            </div>
+          </div>
+          <div class="psw-col">
+            <div class="psw-day">Fri 16</div>
+            <div class="psw-cards">
+              <div class="psw-card psw-card-complete is-complete">
+                <div class="psw-card-top is-centered">
+                  <span class="psw-job">#JOB-3109</span>
+                  <span class="psw-badge">PAID</span>
+                </div>
+                <div class="psw-card-head">
+                  <div class="psw-card-title">Premium Lawn Cut</div>
+                  <div class="psw-card-addr">12 Crestwood Blvd</div>
+                </div>
+                <div class="psw-customer">
+                  <span class="psw-avatar">JS</span>
+                  <span class="psw-customer-name">John Smith</span>
+                </div>
+                <div class="psw-success">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                  Payment Captured
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="psw-sidebar">
+          <div class="psw-balance">
+            <span class="psw-balance-label">Weekly Balance</span>
+            <span class="psw-balance-value">$4,810.00</span>
+          </div>
+          <div class="psw-legend">
+            <div class="psw-legend-item">
+              <span class="psw-legend-label"><span class="psw-legend-dot"></span>Confirmed Payouts</span>
+              <span class="psw-legend-value">$3,450</span>
+            </div>
+            <div class="psw-legend-item">
+              <span class="psw-legend-label"><span class="psw-legend-dot is-blue"></span>Outstanding Jobs</span>
+              <span class="psw-legend-value">$1,360</span>
+            </div>
+          </div>
+          <div class="psw-stamp">
+            <span class="psw-stamp-title">FLOW ACCELERATOR</span>
+            <p class="psw-stamp-body">Schedule, track &amp; get paid — all in one place.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var DESIGN_W = 1200, DESIGN_H = 760, TIMELINE_MS = 8000;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  document.querySelectorAll(".psw:not([data-psw-init])").forEach(function (root) {
+    root.setAttribute("data-psw-init", "");
+    var frame = root.querySelector(".psw-frame");
+
+    // At 1200px+ render 1:1; on narrower containers scale the whole design proportionally.
+    function fit() {
+      var w = root.clientWidth;
+      if (w >= DESIGN_W) {
+        frame.style.width = frame.style.transform = root.style.height = "";
+      } else {
+        var s = w / DESIGN_W;
+        frame.style.width = DESIGN_W + "px";
+        frame.style.transform = "scale(" + s + ")";
+        root.style.height = DESIGN_H * s + "px";
+      }
+    }
+    fit();
+    if ("ResizeObserver" in window) new ResizeObserver(fit).observe(root);
+    else window.addEventListener("resize", fit);
+
+    if (reduceMotion || !("IntersectionObserver" in window)) return;
+
+    root.classList.add("psw--armed");
+    var loop = root.getAttribute("data-loop") === "true";
+    var loopDelay = parseInt(root.getAttribute("data-loop-delay"), 10) || 4000;
+
+    function play() {
+      root.classList.remove("psw--run");
+      root.classList.add("psw--reset");
+      void root.offsetWidth; // restart CSS animations
+      root.classList.remove("psw--reset");
+      root.classList.add("psw--run");
+      if (loop) setTimeout(play, TIMELINE_MS + loopDelay);
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); play(); }
+    }, { threshold: 0.35 });
+    io.observe(root);
+  });
+})();
+</script>

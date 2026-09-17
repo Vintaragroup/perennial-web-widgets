@@ -1,0 +1,444 @@
+<!--
+  Perennial — Animated Crew Scheduling Widget (desktop)
+  Figma: OpeXLecEHRl0RU0WspDQQH, node 11:5 "desktop-crew-scheduling-widget" (1200×760, 8s timeline)
+
+  Source file. For WordPress, paste crew-widget-responsive.html (built by ./build.sh), which
+  inlines the map image. Everything is scoped under .pcw.
+
+  Options (attributes on the .pcw element):
+    data-loop="true"         replay the timeline after it finishes
+    data-loop-delay="4000"   ms to hold the final frame before replaying (default 4000)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  .pcw {
+    --pcw-bg: #0B2216;
+    --pcw-lime: #84CC16;
+    --pcw-ink: #0F1E16;
+    --pcw-muted: #6B7C72;
+    --pcw-line: #E5ECE9;
+    --pcw-surface: #F4F7F6;
+    --pcw-blue: #0EA5E9;
+    --pcw-orange: #F97316;
+    --pcw-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    width: 100%;
+    overflow: hidden;
+  }
+  .pcw, .pcw * { box-sizing: border-box; margin: 0; padding: 0; border: 0; }
+  .pcw svg { display: block; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .pcw svg * { vector-effect: non-scaling-stroke; }
+
+  .pcw-frame {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    max-width: 1200px;
+    height: 760px;
+    margin: 0 auto;
+    padding: 40px;
+    overflow: hidden;
+    background: var(--pcw-bg);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    line-height: 1.26;
+    color: var(--pcw-ink);
+    text-align: left;
+    -webkit-font-smoothing: antialiased;
+    transform-origin: top left;
+  }
+  .pcw-row { display: flex; align-items: center; justify-content: space-between; }
+
+  /* ---------- Header ---------- */
+  .pcw-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .pcw-statement { display: flex; flex-direction: column; gap: 8px; width: 500px; }
+  .pcw-eyebrow { display: flex; align-items: center; gap: 8px; }
+  .pcw-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--pcw-lime); opacity: 0.45; }
+  .pcw-eyebrow-text { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--pcw-lime); }
+  .pcw-title { font-family: inherit; font-size: 28px; font-weight: 800; line-height: 1.2; letter-spacing: -0.5px; color: #FFFFFF; text-transform: none; }
+  .pcw-checklist { display: flex; flex-wrap: wrap; gap: 24px; width: 580px; flex-shrink: 0; list-style: none; }
+  .pcw-bullet { display: flex; align-items: center; gap: 8px; width: 270px; }
+  .pcw-check { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 10px; background: var(--pcw-lime); color: var(--pcw-bg); }
+  .pcw-check svg { width: 10px; height: 10px; }
+  .pcw-bullet-text { flex: 1; font-size: 13px; font-weight: 600; color: #FFFFFF; }
+
+  /* ---------- App panel ---------- */
+  .pcw-panel { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; background: #FFFFFF; border-radius: 20px; box-shadow: 0 12px 40px rgba(5, 26, 16, 0.16); }
+  .pcw-topbar { height: 60px; padding: 0 24px; border-bottom: 1px solid var(--pcw-line); flex-shrink: 0; }
+  .pcw-app-title { display: flex; align-items: center; gap: 12px; }
+  .pcw-logo { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--pcw-bg); color: var(--pcw-lime); }
+  .pcw-logo svg { width: 14px; height: 14px; }
+  .pcw-app-name { font-size: 15px; font-weight: 700; }
+  .pcw-week { padding: 4px 10px; border-radius: 6px; background: var(--pcw-surface); font-size: 11px; font-weight: 600; color: var(--pcw-muted); }
+  .pcw-controls { display: flex; align-items: center; gap: 16px; }
+  .pcw-toggles { display: flex; padding: 4px; border-radius: 8px; background: var(--pcw-surface); }
+  .pcw-toggle { padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--pcw-muted); }
+  .pcw-toggle.is-active { background: #FFFFFF; font-weight: 700; color: var(--pcw-ink); }
+  .pcw-optimize { padding: 8px 16px; border-radius: 8px; background: var(--pcw-lime); font-size: 12px; font-weight: 700; color: var(--pcw-bg); }
+
+  .pcw-workspace { display: flex; flex: 1; min-height: 0; }
+
+  /* Gantt */
+  .pcw-gantt { display: flex; flex-direction: column; flex: 1; min-width: 0; border-right: 1px solid var(--pcw-line); }
+  .pcw-days { display: flex; height: 40px; flex-shrink: 0; background: var(--pcw-surface); border-bottom: 1px solid var(--pcw-line); }
+  .pcw-corner { width: 160px; flex-shrink: 0; }
+  .pcw-day { display: flex; align-items: center; justify-content: center; flex: 1 1 0; min-width: 0; padding: 10px; border-right: 1px solid var(--pcw-line); font-size: 11px; font-weight: 700; color: var(--pcw-muted); }
+
+  .pcw-crew { display: flex; flex: 1 1 0; min-height: 0; border-bottom: 1px solid var(--pcw-line); }
+  .pcw-crew-delta { border-bottom: 0; }
+  .pcw-crew-label { display: flex; align-items: center; gap: 10px; width: 160px; flex-shrink: 0; padding: 12px; background: var(--pcw-surface); border-right: 1px solid var(--pcw-line); }
+  .pcw-avatar { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex-shrink: 0; border-radius: 14px; background: var(--pcw-bg); font-size: 11px; font-weight: 700; color: #FFFFFF; }
+  .pcw-crew-text { display: flex; flex-direction: column; gap: 2px; }
+  .pcw-crew-name { font-size: 13px; font-weight: 800; white-space: nowrap; }
+  .pcw-crew-size { font-size: 10px; font-weight: 600; color: var(--pcw-muted); }
+
+  .pcw-cell { display: flex; flex-direction: column; flex: 1 1 0; min-width: 0; padding: 8px; border-right: 1px solid var(--pcw-line); }
+  .pcw-cell:last-child { border-right: 0; }
+
+  .pcw-job { --pcw-accent: var(--pcw-blue); display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 8px; background: var(--pcw-surface); box-shadow: inset 3px 0 0 var(--pcw-accent); }
+  .pcw-job.is-orange { --pcw-accent: var(--pcw-orange); }
+  .pcw-job.is-green { --pcw-accent: var(--pcw-lime); background: #F0FDF4; }
+  .pcw-job-id { font-size: 10px; font-weight: 700; color: var(--pcw-muted); }
+  .pcw-job-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--pcw-accent); }
+  .pcw-job-title { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .pcw-job-meta { display: flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; color: var(--pcw-muted); white-space: nowrap; }
+  .pcw-job-meta svg { width: 10px; height: 10px; }
+
+  .pcw-slot { display: flex; align-items: center; justify-content: center; flex: 1; border: 1px dashed var(--pcw-line); border-radius: 8px; font-size: 10px; font-weight: 600; color: var(--pcw-muted); }
+
+  .pcw-summary { display: flex; align-items: center; gap: 20px; height: 34px; flex-shrink: 0; padding: 10px 16px; background: var(--pcw-surface); border-top: 1px solid var(--pcw-line); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .pcw-summary-label { display: flex; align-items: center; gap: 8px; color: var(--pcw-muted); }
+  .pcw-summary-label svg { width: 14px; height: 14px; }
+  .pcw-summary-items { display: flex; align-items: center; gap: 16px; color: var(--pcw-ink); }
+  .pcw-summary-sep { width: 1px; height: 10px; background: var(--pcw-line); }
+  .pcw-full { color: var(--pcw-lime); }
+  .pcw-open { color: var(--pcw-orange); }
+
+  /* Sidebar */
+  .pcw-sidebar { display: flex; flex-direction: column; gap: 20px; width: 260px; flex-shrink: 0; padding: 20px; background: var(--pcw-surface); }
+  .pcw-health { display: flex; flex-direction: column; gap: 4px; }
+  .pcw-health-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--pcw-muted); }
+  .pcw-health-value { font-size: 22px; font-weight: 800; }
+  .pcw-map { display: flex; flex-direction: column; gap: 8px; }
+  .pcw-map-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--pcw-muted); }
+  .pcw-map-visual { position: relative; height: 100px; overflow: hidden; border-radius: 10px; background: #DDE3E0; }
+  .pcw-map-visual img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .pcw-gps { position: absolute; top: 8px; left: 8px; padding: 4px 8px; border-radius: 6px; background: var(--pcw-bg); font-size: 9px; font-weight: 800; color: var(--pcw-lime); }
+  .pcw-metrics { display: flex; flex-direction: column; gap: 10px; }
+  .pcw-metric { padding: 10px; box-shadow: inset 0 0 0 1px var(--pcw-line); border-radius: 8px; background: #FFFFFF; font-size: 11px; }
+  .pcw-metric-label { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .pcw-metric-dot { display: flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 7px; background: #F0FDF4; }
+  .pcw-metric-dot::after { content: ""; width: 6px; height: 6px; border-radius: 3px; background: var(--pcw-lime); }
+  .pcw-metric-dot.is-blue { background: #F0F9FF; }
+  .pcw-metric-dot.is-blue::after { background: var(--pcw-blue); }
+  .pcw-metric-value { font-weight: 700; }
+  .pcw-stamp { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 12px; background: #123020; }
+  .pcw-stamp-title { font-size: 11px; font-weight: 700; color: var(--pcw-lime); }
+  .pcw-stamp-body { font-size: 11px; line-height: 1.4; color: #A9C0B5; }
+
+  /* ---------- Motion (Figma timeline, 8000ms) ---------- */
+  .pcw--armed:not(.pcw--run) * { animation-play-state: paused !important; }
+  .pcw--reset * { animation: none !important; }
+
+  .pcw--armed .pcw-dot { animation: pcw-blink 8s linear infinite; }
+  .pcw--armed .pcw-checklist { --pcw-o: 0.38; animation: pcw-light 0.55s var(--pcw-out) 5s both; }
+  .pcw--armed .pcw-panel { --pcw-y: 22px; animation: pcw-rise 0.8s var(--pcw-out) 0.15s both; }
+
+  .pcw--armed .pcw-crew { animation: pcw-slide 0.4s var(--pcw-out) both; }
+  .pcw--armed .pcw-crew-alpha { --pcw-x: -14px; animation-delay: 1.05s; }
+  .pcw--armed .pcw-crew-bravo { --pcw-x: -14px; animation-delay: 1.35s; }
+  .pcw--armed .pcw-crew-delta { --pcw-x: -14px; animation-delay: 1.65s; }
+
+  .pcw--armed .pcw-in { --pcw-y: 10px; animation: pcw-rise 0.32s var(--pcw-out) both; }
+  .pcw--armed .pcw-in-1 { animation-delay: 1.7s; }
+  .pcw--armed .pcw-in-2 { animation-delay: 1.92s; }
+  .pcw--armed .pcw-in-3 { animation-delay: 2.14s; }
+  .pcw--armed .pcw-in-4 { animation-delay: 2.36s; }
+  .pcw--armed .pcw-in-5 { animation-delay: 2.58s; }
+  .pcw--armed .pcw-in-6 { animation-delay: 2.8s; }
+
+  /* Open slot highlights, then the job is dropped into Friday */
+  .pcw--armed .pcw-drop-target { animation: pcw-target 1.1s linear 3s both; }
+  .pcw--armed .pcw-dropped { --pcw-x: -42px; animation: pcw-slide 0.5s var(--pcw-out) 3.15s both; }
+
+  .pcw--armed .pcw-map { animation: pcw-map 0.55s var(--pcw-out) 4.15s both; }
+  .pcw--armed .pcw-metrics { --pcw-o: 0.3; animation: pcw-light 0.55s var(--pcw-out) 4.55s both; }
+  .pcw--armed .pcw-stamp { --pcw-y: 12px; animation: pcw-rise 0.8s var(--pcw-out) 6.05s both; }
+
+  @keyframes pcw-rise {
+    from { opacity: 0; translate: 0 var(--pcw-y, 16px); }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes pcw-slide {
+    from { opacity: 0; translate: var(--pcw-x, -14px) 0; }
+    to   { opacity: 1; translate: 0 0; }
+  }
+  @keyframes pcw-light {
+    from { opacity: var(--pcw-o, 0); }
+    to   { opacity: 1; }
+  }
+  @keyframes pcw-map {
+    from { opacity: 0.25; scale: 0.97; }
+    to   { opacity: 1; scale: 1; }
+  }
+  @keyframes pcw-target {
+    0%      { opacity: 0.35; animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); }
+    31.82%  { opacity: 1;    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    100%    { opacity: 0.35; }
+  }
+  @keyframes pcw-blink {
+    0%          { opacity: 0.45; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    7.5%        { opacity: 1;    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    15%, 52.5%  { opacity: 0.45; animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    60%         { opacity: 1;    animation-timing-function: cubic-bezier(0.42, 0, 0.58, 1); }
+    67.5%, 100% { opacity: 0.45; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pcw * { animation: none !important; }
+  }
+</style>
+
+<div class="pcw" data-loop="false">
+  <div class="pcw-frame">
+    <header class="pcw-header">
+      <div class="pcw-statement">
+        <div class="pcw-eyebrow">
+          <span class="pcw-dot"></span>
+          <span class="pcw-eyebrow-text">Crew Scheduler</span>
+        </div>
+        <h2 class="pcw-title">Optimize crew capacity and routes<br> in real-time</h2>
+      </div>
+      <ul class="pcw-checklist">
+        <li class="pcw-bullet"><span class="pcw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pcw-bullet-text">Live load &amp; capacity monitoring</span></li>
+        <li class="pcw-bullet"><span class="pcw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pcw-bullet-text">Drag-and-drop auto-scheduling</span></li>
+        <li class="pcw-bullet"><span class="pcw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pcw-bullet-text">Route-awareness &amp; travel sync</span></li>
+        <li class="pcw-bullet"><span class="pcw-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span><span class="pcw-bullet-text">Real-time dispatch alerts</span></li>
+      </ul>
+    </header>
+
+    <div class="pcw-panel" role="img" aria-label="Crew Dispatch Board for the week of October 12 to 16: Alpha, Bravo and Delta crews scheduled across the week, 94% dispatch efficiency, 14 minute average drive time and 18% fuel saved.">
+      <div class="pcw-row pcw-topbar">
+        <div class="pcw-app-title">
+          <span class="pcw-logo"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M3 10h18M8 2v4M17 14h-6M13 18H7M7 14h.01M17 18h.01"/></svg></span>
+          <span class="pcw-app-name">Crew Dispatch Board</span>
+          <span class="pcw-week">Week 42 · Oct 12 - 16</span>
+        </div>
+        <div class="pcw-controls">
+          <div class="pcw-toggles">
+            <span class="pcw-toggle is-active">Gantt Timeline</span>
+            <span class="pcw-toggle">Map Overlay</span>
+          </div>
+          <span class="pcw-optimize">Optimize Routes</span>
+        </div>
+      </div>
+
+      <div class="pcw-workspace">
+        <div class="pcw-gantt">
+          <div class="pcw-days">
+            <span class="pcw-corner"></span>
+            <span class="pcw-day">Mon 12</span>
+            <span class="pcw-day">Tue 13</span>
+            <span class="pcw-day">Wed 14</span>
+            <span class="pcw-day">Thu 15</span>
+            <span class="pcw-day">Fri 16</span>
+          </div>
+
+          <div class="pcw-crew pcw-crew-alpha">
+            <div class="pcw-crew-label">
+              <span class="pcw-avatar">AC</span>
+              <span class="pcw-crew-text"><span class="pcw-crew-name">Alpha Crew</span><span class="pcw-crew-size">3 members</span></span>
+            </div>
+            <div class="pcw-cell">
+              <div class="pcw-job pcw-in pcw-in-1">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-84</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Tree Pruning</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>08:00 AM · River Hills</div>
+              </div>
+            </div>
+            <div class="pcw-cell">
+              <div class="pcw-job pcw-in pcw-in-2">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-85</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Mulch Install</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>11:30 AM · Oak Terr.</div>
+              </div>
+            </div>
+            <div class="pcw-cell">
+              <div class="pcw-job">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-89</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Lawn Aeration</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>02:00 PM · Pine Blvd</div>
+              </div>
+            </div>
+            <div class="pcw-cell"><div class="pcw-slot pcw-drop-target">+ Assign</div></div>
+            <div class="pcw-cell">
+              <div class="pcw-job is-green pcw-dropped">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-92</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Premium Mow</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>09:00 AM · Crestwood</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pcw-crew pcw-crew-bravo">
+            <div class="pcw-crew-label">
+              <span class="pcw-avatar">BC</span>
+              <span class="pcw-crew-text"><span class="pcw-crew-name">Bravo Crew</span><span class="pcw-crew-size">2 members</span></span>
+            </div>
+            <div class="pcw-cell"><div class="pcw-slot">+ Assign</div></div>
+            <div class="pcw-cell">
+              <div class="pcw-job is-orange pcw-in pcw-in-3">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-95</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Garden Clean</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>01:30 PM · Main St</div>
+              </div>
+            </div>
+            <div class="pcw-cell"><div class="pcw-slot">+ Assign</div></div>
+            <div class="pcw-cell">
+              <div class="pcw-job pcw-in pcw-in-4">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-101</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Sod Install</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>10:00 AM · Maple Dr</div>
+              </div>
+            </div>
+            <div class="pcw-cell">
+              <div class="pcw-job">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-102</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Weed Control</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>03:00 PM · Hill Rd</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pcw-crew pcw-crew-delta">
+            <div class="pcw-crew-label">
+              <span class="pcw-avatar">DC</span>
+              <span class="pcw-crew-text"><span class="pcw-crew-name">Delta Crew</span><span class="pcw-crew-size">4 members</span></span>
+            </div>
+            <div class="pcw-cell">
+              <div class="pcw-job pcw-in pcw-in-5">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-110</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Debris Hauling</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>11:00 AM · City Park</div>
+              </div>
+            </div>
+            <div class="pcw-cell"><div class="pcw-slot">+ Assign</div></div>
+            <div class="pcw-cell">
+              <div class="pcw-job pcw-in pcw-in-6">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-112</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Irrigation Repair</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>08:30 AM · Lakeside</div>
+              </div>
+            </div>
+            <div class="pcw-cell">
+              <div class="pcw-job">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-115</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Hedge Trim</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>01:00 PM · Crestview</div>
+              </div>
+            </div>
+            <div class="pcw-cell">
+              <div class="pcw-job is-green">
+                <div class="pcw-row"><span class="pcw-job-id">#JOB-118</span><span class="pcw-job-dot"></span></div>
+                <div class="pcw-job-title">Mowing</div>
+                <div class="pcw-job-meta"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>02:30 PM · Valley Dr</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pcw-summary">
+            <span class="pcw-summary-label">
+              <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Summary:
+            </span>
+            <span class="pcw-summary-items">
+              <span>Alpha Crew <span class="pcw-full">Full</span></span>
+              <span class="pcw-summary-sep"></span>
+              <span>Bravo Crew <span class="pcw-open">2 Open Slots</span></span>
+              <span class="pcw-summary-sep"></span>
+              <span>Delta Crew <span class="pcw-full">Full</span></span>
+            </span>
+          </div>
+        </div>
+
+        <aside class="pcw-sidebar">
+          <div class="pcw-health">
+            <span class="pcw-health-label">Today's Dispatch Health</span>
+            <span class="pcw-health-value">94% Efficient</span>
+          </div>
+          <div class="pcw-map">
+            <span class="pcw-map-label">Active Routes Map</span>
+            <div class="pcw-map-visual">
+              <img src="assets/routes-map.jpg" alt="" width="220" height="100">
+              <span class="pcw-gps">LIVE GPS</span>
+            </div>
+          </div>
+          <div class="pcw-metrics">
+            <div class="pcw-row pcw-metric">
+              <span class="pcw-metric-label"><span class="pcw-metric-dot"></span>Avg. Drive Time</span>
+              <span class="pcw-metric-value">14 mins</span>
+            </div>
+            <div class="pcw-row pcw-metric">
+              <span class="pcw-metric-label"><span class="pcw-metric-dot is-blue"></span>Fuel Saved</span>
+              <span class="pcw-metric-value">18%</span>
+            </div>
+          </div>
+          <div class="pcw-stamp">
+            <span class="pcw-stamp-title">ROUTE OPTIMIZER ACTIVATED</span>
+            <p class="pcw-stamp-body">Calculated 3 alternate routes to bypass Springfield construction today.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var DESIGN_W = 1200, DESIGN_H = 760, TIMELINE_MS = 8000;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  document.querySelectorAll(".pcw:not([data-pcw-init])").forEach(function (root) {
+    root.setAttribute("data-pcw-init", "");
+    var frame = root.querySelector(".pcw-frame");
+
+    // At 1200px+ render 1:1; on narrower containers scale the whole design proportionally.
+    function fit() {
+      var w = root.clientWidth;
+      if (w >= DESIGN_W || w === 0) {
+        frame.style.width = frame.style.transform = root.style.height = "";
+      } else {
+        var s = w / DESIGN_W;
+        frame.style.width = DESIGN_W + "px";
+        frame.style.transform = "scale(" + s + ")";
+        root.style.height = DESIGN_H * s + "px";
+      }
+    }
+    fit();
+    if ("ResizeObserver" in window) new ResizeObserver(fit).observe(root);
+    else window.addEventListener("resize", fit);
+
+    if (reduceMotion || !("IntersectionObserver" in window)) return;
+
+    root.classList.add("pcw--armed");
+    var loop = root.getAttribute("data-loop") === "true";
+    var loopDelay = parseInt(root.getAttribute("data-loop-delay"), 10) || 4000;
+
+    function play() {
+      root.classList.remove("pcw--run");
+      root.classList.add("pcw--reset");
+      void root.offsetWidth; // restart CSS animations
+      root.classList.remove("pcw--reset");
+      root.classList.add("pcw--run");
+      if (loop) setTimeout(play, TIMELINE_MS + loopDelay);
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); play(); }
+    }, { threshold: 0.35 });
+    io.observe(root);
+  });
+})();
+</script>

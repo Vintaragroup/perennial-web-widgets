@@ -1,0 +1,292 @@
+<!--
+  Perennial — Animated Business Overview Widget (mobile)
+  Figma: OpeXLecEHRl0RU0WspDQQH, node 16:193 "mobile-business-overview-widget" (390 wide, 8s timeline)
+  The Figma frame's iOS status bar is device chrome and is intentionally not rendered.
+
+  Source file. For WordPress, paste business-widget-responsive.html (built by ./build.sh).
+  Everything is scoped under .pbom.
+
+  Options (attributes on the .pbom element):
+    data-loop="true"         replay the timeline after it finishes
+    data-loop-delay="4000"   ms to hold the final frame before replaying (default 4000)
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  .pbom {
+    --pbom-bg: #0B2216;
+    --pbom-deep: #123020;
+    --pbom-edge: #1C3023;
+    --pbom-lime: #84CC16;
+    --pbom-ink: #0F1E16;
+    --pbom-muted: #6B7C72;
+    --pbom-soft: #A9C0B5;
+    --pbom-line: #E5ECE9;
+    --pbom-surface: #F4F7F6;
+    --pbom-blue: #0EA5E9;
+    --pbom-orange: #F97316;
+    --pbom-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    width: 100%;
+    overflow: hidden;
+  }
+  /* Figma strokes sit inside the box, so 1px outlines use inset shadows to keep Figma's dimensions. */
+  .pbom, .pbom * { box-sizing: border-box; margin: 0; padding: 0; border: 0; }
+  .pbom svg { display: block; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .pbom svg * { vector-effect: non-scaling-stroke; }
+
+  .pbom-frame {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 40px;
+    background: var(--pbom-bg);
+    font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+    line-height: 1.26;
+    color: var(--pbom-ink);
+    text-align: left;
+    -webkit-font-smoothing: antialiased;
+  }
+  .pbom-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+  /* ---------- Header ---------- */
+  .pbom-header { display: flex; flex-direction: column; gap: 10px; padding: 16px 24px; }
+  .pbom-eyebrow { display: flex; align-items: center; gap: 8px; }
+  .pbom-dot { width: 8px; height: 8px; border-radius: 4px; background: var(--pbom-lime); }
+  .pbom-eyebrow-text { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--pbom-lime); }
+  .pbom-title { font-family: inherit; font-size: 22px; font-weight: 800; line-height: 1.25; letter-spacing: 0; color: #FFFFFF; text-transform: none; }
+
+  /* ---------- App card ---------- */
+  .pbom-panel { padding: 0 16px; }
+  .pbom-app { overflow: hidden; background: #FFFFFF; border-radius: 20px; box-shadow: 0 12px 40px rgba(5, 26, 16, 0.16); }
+
+  .pbom-topbar { padding: 14px 16px; box-shadow: inset 0 -1px 0 var(--pbom-line); }
+  .pbom-app-title { display: flex; align-items: center; gap: 8px; }
+  .pbom-logo { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 8px; background: var(--pbom-bg); color: var(--pbom-lime); }
+  .pbom-logo svg { width: 14px; height: 14px; }
+  .pbom-brand { font-size: 14px; font-weight: 800; }
+  .pbom-live { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 100px; background: rgba(132, 204, 22, 0.1); font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--pbom-lime); white-space: nowrap; }
+  .pbom-live::before { content: ""; width: 6px; height: 6px; border-radius: 3px; background: var(--pbom-lime); }
+
+  .pbom-kpis { display: flex; align-items: flex-start; gap: 8px; padding: 12px 16px; background: var(--pbom-surface); box-shadow: inset 0 -1px 0 var(--pbom-line); }
+  .pbom-kpi { display: flex; flex-direction: column; gap: 2px; flex: 1 1 0; min-width: 0; }
+  .pbom-kpi-sep { width: 0; height: 28px; flex-shrink: 0; box-shadow: 1px 0 0 var(--pbom-line); }
+  .pbom-kpi-val { font-size: 15px; font-weight: 800; white-space: nowrap; }
+  .pbom-kpi-val.is-blue { color: var(--pbom-blue); }
+  .pbom-kpi-val.is-orange { color: var(--pbom-orange); }
+  .pbom-kpi-label { font-size: 9px; font-weight: 600; text-transform: uppercase; color: var(--pbom-muted); white-space: nowrap; }
+
+  .pbom-workspace { display: flex; flex-direction: column; gap: 20px; padding: 16px; }
+  .pbom-section { display: flex; flex-direction: column; gap: 12px; }
+  .pbom-section-head { display: flex; flex-direction: column; gap: 4px; }
+  .pbom-section-title { font-size: 14px; font-weight: 800; }
+  .pbom-section-sub { font-size: 11px; color: var(--pbom-muted); }
+
+  .pbom-jobs { display: flex; flex-direction: column; gap: 8px; }
+  .pbom-job { gap: 10px; padding: 12px; border-radius: 10px; background: var(--pbom-surface); box-shadow: inset 0 0 0 1px var(--pbom-line); }
+  .pbom-job-meta { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+  .pbom-job-time { font-size: 10px; font-weight: 700; color: var(--pbom-muted); }
+  .pbom-job-prop { font-size: 13px; font-weight: 800; }
+  .pbom-status { padding: 3px 8px; border-radius: 6px; background: rgba(14, 165, 233, 0.1); font-size: 9px; font-weight: 800; color: var(--pbom-blue); white-space: nowrap; }
+  .pbom-status.is-delayed { background: rgba(249, 115, 22, 0.1); color: var(--pbom-orange); }
+
+  .pbom-alert { padding: 12px; border-radius: 12px; background: #FFFFFF; box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.2), 0 4px 12px rgba(249, 115, 22, 0.05); }
+  .pbom-alert-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; }
+  .pbom-alert-name::before { content: ""; width: 8px; height: 8px; border-radius: 4px; background: var(--pbom-orange); }
+  .pbom-alert-qty { font-size: 11px; font-weight: 800; color: var(--pbom-orange); white-space: nowrap; }
+
+  .pbom-metric-box { display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 12px; background: var(--pbom-surface); box-shadow: inset 0 0 0 1px var(--pbom-line); }
+  .pbom-chart { display: flex; gap: 8px; height: 60px; }
+  .pbom-bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; flex: 1 1 0; min-width: 0; }
+  .pbom-bar { align-self: stretch; height: var(--h); flex-shrink: 0; border-radius: 4px 4px 0 0; background: var(--pbom-bg); }
+  .pbom-bar.is-peak { background: var(--pbom-lime); }
+  .pbom-bar-label { font-size: 9px; font-weight: 700; color: var(--pbom-muted); }
+  .pbom-divider { height: 1px; background: var(--pbom-line); }
+  .pbom-total-label { font-size: 10px; font-weight: 700; color: var(--pbom-muted); }
+  .pbom-total-value { font-size: 13px; font-weight: 800; }
+
+  /* ---------- Accordions, checklist, footer ---------- */
+  .pbom-aside { display: flex; flex-direction: column; gap: 12px; padding: 24px 16px 0; }
+  .pbom-acc { display: flex; flex-direction: column; gap: 8px; padding: 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--pbom-edge); }
+  .pbom-acc.is-open { background: var(--pbom-deep); }
+  .pbom-acc-label { font-size: 13px; font-weight: 800; color: #FFFFFF; }
+  .pbom-acc.is-open .pbom-acc-label { color: var(--pbom-lime); }
+  .pbom-acc svg { width: 12px; height: 12px; color: var(--pbom-soft); }
+  .pbom-acc.is-open svg { color: var(--pbom-lime); }
+  .pbom-acc-desc { font-size: 11px; line-height: 1.4; color: var(--pbom-soft); }
+
+  .pbom-checklist { display: flex; flex-direction: column; gap: 10px; padding: 24px 24px 12px; list-style: none; }
+  .pbom-bullet { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; color: #FFFFFF; }
+  .pbom-check { display: flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 8px; background: var(--pbom-lime); color: var(--pbom-bg); }
+  .pbom-check svg { width: 8px; height: 8px; }
+
+  .pbom-footer { padding: 12px 16px 0; }
+  .pbom-stamp { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 14px; background: var(--pbom-deep); }
+  .pbom-stamp-title { font-size: 10px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--pbom-lime); }
+  .pbom-stamp-body { font-size: 12px; line-height: 1.4; color: var(--pbom-soft); }
+
+  /* ---------- Motion (Figma timeline, 8000ms) ---------- */
+  .pbom--armed:not(.pbom--run) * { animation-play-state: paused !important; }
+  .pbom--reset * { animation: none !important; }
+
+  .pbom--armed .pbom-panel { --pbom-y: 20px; animation: pbom-rise 0.8s var(--pbom-out) 0.2s both; }
+  .pbom--armed .pbom-kpi { --pbom-y: 8px; animation: pbom-rise 0.35s var(--pbom-out) both; }
+  .pbom--armed .pbom-kpi:nth-child(1) { animation-delay: 1s; }
+  .pbom--armed .pbom-kpi:nth-child(3) { animation-delay: 1.25s; }
+  .pbom--armed .pbom-kpi:nth-child(5) { animation-delay: 1.5s; }
+  .pbom--armed .pbom-schedule { animation: pbom-fade 0.4s var(--pbom-out) 1.75s both; }
+  .pbom--armed .pbom-job { animation: pbom-slide 0.4s var(--pbom-out) both; }
+  .pbom--armed .pbom-job:nth-child(1) { animation-delay: 2s; }
+  .pbom--armed .pbom-job:nth-child(2) { animation-delay: 2.35s; }
+  .pbom--armed .pbom-alert-section { animation: pbom-fade 0.45s var(--pbom-out) 2.75s both; }
+  .pbom--armed .pbom-alert { animation: pbom-pop 0.4s var(--pbom-out) 3.05s both; }
+  .pbom--armed .pbom-yield { animation: pbom-fade 0.45s var(--pbom-out) 3.55s both; }
+  .pbom--armed .pbom-bar {
+    animation: pbom-bar-fade 0.3s var(--pbom-out) var(--d) both,
+               pbom-bar-grow 0.42s var(--pbom-out) var(--d) both;
+  }
+  .pbom--armed .pbom-aside { --pbom-o: 0.38; animation: pbom-fade 0.55s var(--pbom-out) 5s both; }
+  .pbom--armed .pbom-stamp { --pbom-y: 12px; animation: pbom-rise 0.8s var(--pbom-out) 6.15s both; }
+
+  @keyframes pbom-rise     { from { opacity: 0; translate: 0 var(--pbom-y, 16px); } to { opacity: 1; translate: 0 0; } }
+  @keyframes pbom-fade     { from { opacity: var(--pbom-o, 0); } to { opacity: 1; } }
+  @keyframes pbom-slide    { from { opacity: 0; translate: -18px 0; } to { opacity: 1; translate: 0 0; } }
+  @keyframes pbom-pop      { from { opacity: 0; scale: 0.96; } to { opacity: 1; scale: 1; } }
+  @keyframes pbom-bar-fade { from { opacity: 0.35; } to { opacity: 1; } }
+  @keyframes pbom-bar-grow { from { scale: 1 0.08; } to { scale: 1 1; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pbom * { animation: none !important; }
+  }
+</style>
+
+<div class="pbom" data-loop="false">
+  <div class="pbom-frame">
+    <header class="pbom-header">
+      <div class="pbom-eyebrow">
+        <span class="pbom-dot"></span>
+        <span class="pbom-eyebrow-text">Morning Control Center</span>
+      </div>
+      <h2 class="pbom-title">Your entire field operations in real-time</h2>
+    </header>
+
+    <div class="pbom-panel">
+      <div class="pbom-app" role="img" aria-label="Perennial Pro: 8 of 12 jobs done, Alpha Crew on route, a delayed fertilization job, a weed control restock alert, and $14,290 weekly yield.">
+        <div class="pbom-row pbom-topbar">
+          <div class="pbom-app-title">
+            <span class="pbom-logo"><svg viewBox="0 0 24 24"><path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z"/><circle cx="12" cy="12" r="10"/></svg></span>
+            <span class="pbom-brand">Perennial Pro</span>
+          </div>
+          <span class="pbom-live">Live Connection</span>
+        </div>
+
+        <div class="pbom-kpis">
+          <div class="pbom-kpi"><span class="pbom-kpi-val">8 / 12</span><span class="pbom-kpi-label">Jobs Done</span></div>
+          <span class="pbom-kpi-sep"></span>
+          <div class="pbom-kpi"><span class="pbom-kpi-val is-blue">On Route</span><span class="pbom-kpi-label">Alpha Crew</span></div>
+          <span class="pbom-kpi-sep"></span>
+          <div class="pbom-kpi"><span class="pbom-kpi-val is-orange">1 Alert</span><span class="pbom-kpi-label">Weed Control</span></div>
+        </div>
+
+        <div class="pbom-workspace">
+          <div class="pbom-section pbom-schedule">
+            <div class="pbom-section-head">
+              <span class="pbom-section-title">Today's Active Crews</span>
+              <span class="pbom-section-sub">Real-time status updates from the field.</span>
+            </div>
+            <div class="pbom-jobs">
+              <div class="pbom-row pbom-job">
+                <span class="pbom-job-meta"><span class="pbom-job-time">08:00 AM · Lawn Mowing</span><span class="pbom-job-prop">Falcon Main Office</span></span>
+                <span class="pbom-status">On Route</span>
+              </div>
+              <div class="pbom-row pbom-job">
+                <span class="pbom-job-meta"><span class="pbom-job-time">10:30 AM · Fertilization</span><span class="pbom-job-prop">Sunset Residence</span></span>
+                <span class="pbom-status is-delayed">Delayed</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pbom-section pbom-alert-section">
+            <div class="pbom-section-head">
+              <span class="pbom-section-title">Priority Inventory Alert</span>
+              <span class="pbom-section-sub">Restock notice requested by dispatch.</span>
+            </div>
+            <div class="pbom-row pbom-alert">
+              <span class="pbom-alert-name">Weed Control Chemical</span>
+              <span class="pbom-alert-qty">8 gals left</span>
+            </div>
+          </div>
+
+          <div class="pbom-section pbom-yield">
+            <div class="pbom-section-head">
+              <span class="pbom-section-title">Yield Tracking</span>
+              <span class="pbom-section-sub">Dynamic weekly revenue performance.</span>
+            </div>
+            <div class="pbom-metric-box">
+              <div class="pbom-chart">
+                <div class="pbom-bar-col"><span class="pbom-bar" style="--h: 32px; --d: 3.85s"></span><span class="pbom-bar-label">M</span></div>
+                <div class="pbom-bar-col"><span class="pbom-bar" style="--h: 24px; --d: 4.02s"></span><span class="pbom-bar-label">T</span></div>
+                <div class="pbom-bar-col"><span class="pbom-bar" style="--h: 48px; --d: 4.19s"></span><span class="pbom-bar-label">W</span></div>
+                <div class="pbom-bar-col"><span class="pbom-bar is-peak" style="--h: 54px; --d: 4.36s"></span><span class="pbom-bar-label">T</span></div>
+                <div class="pbom-bar-col"><span class="pbom-bar" style="--h: 38px; --d: 4.53s"></span><span class="pbom-bar-label">F</span></div>
+              </div>
+              <div class="pbom-divider"></div>
+              <div class="pbom-row"><span class="pbom-total-label">Weekly YTD Yield</span><span class="pbom-total-value">$14,290.00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pbom-aside">
+      <div class="pbom-acc is-open">
+        <div class="pbom-row"><span class="pbom-acc-label">Revenue &amp; Yield Tracking</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></div>
+        <p class="pbom-acc-desc">Monitor hourly crew metrics and individual asset profitability dynamically.</p>
+      </div>
+      <div class="pbom-acc"><div class="pbom-row"><span class="pbom-acc-label">Pricing &amp; Capacity Insights</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></div></div>
+      <div class="pbom-acc"><div class="pbom-row"><span class="pbom-acc-label">Integrated Payment Reporting</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></div></div>
+    </div>
+
+    <ul class="pbom-checklist">
+      <li class="pbom-bullet"><span class="pbom-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Live load &amp; capacity monitoring</li>
+      <li class="pbom-bullet"><span class="pbom-check"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></span>Route-awareness &amp; travel sync</li>
+    </ul>
+
+    <div class="pbom-footer">
+      <div class="pbom-stamp">
+        <span class="pbom-stamp-title">Flow Accelerator</span>
+        <p class="pbom-stamp-body">Schedule, dispatch, track inventory, and report financial yield — all synced in one real-time control loop.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var TIMELINE_MS = 8000;
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion || !("IntersectionObserver" in window)) return;
+
+  document.querySelectorAll(".pbom:not([data-pbom-init])").forEach(function (root) {
+    root.setAttribute("data-pbom-init", "");
+    root.classList.add("pbom--armed");
+    var loop = root.getAttribute("data-loop") === "true";
+    var loopDelay = parseInt(root.getAttribute("data-loop-delay"), 10) || 4000;
+
+    function play() {
+      root.classList.remove("pbom--run");
+      root.classList.add("pbom--reset");
+      void root.offsetWidth; // restart CSS animations
+      root.classList.remove("pbom--reset");
+      root.classList.add("pbom--run");
+      if (loop) setTimeout(play, TIMELINE_MS + loopDelay);
+    }
+
+    var io = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) { io.disconnect(); play(); }
+    }, { threshold: 0.2 });
+    io.observe(root);
+  });
+})();
+</script>
